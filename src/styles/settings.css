@@ -27,8 +27,34 @@
   color: var(--ink-3);
   max-width: 34ch;
 }
+.set-row {
+  container-type: inline-size;
+}
+/* In Settings a segmented control spans its row, its options in equal columns.
+   Labels wrap inside their own segment; when the row is too narrow even for
+   that (small phones at the largest text size) the options stack as rows. */
 .set-row .seg {
-  flex-wrap: wrap;
+  display: grid;
+  width: 100%;
+  max-width: 34rem;
+}
+.set-row .seg button {
+  padding: 4px 8px;
+}
+@container (max-width: 250px) {
+  .set-row .seg {
+    grid-auto-flow: row;
+    grid-auto-rows: auto;
+  }
+  .set-row .seg button {
+    border-left: 0;
+    border-top: 1px solid var(--rule-strong);
+    text-align: left;
+    padding: 6px 12px;
+  }
+  .set-row .seg button:first-child {
+    border-top: 0;
+  }
 }
 
 .switch {
@@ -134,53 +160,6 @@
   color: var(--ink-3);
 }
 
-.accents {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.accent-swatch {
-  position: relative;
-  width: 36px;
-  height: 36px;
-  border: 1px solid var(--rule-strong);
-  border-radius: var(--radius);
-  background: var(--surface);
-  display: grid;
-  place-items: center;
-  color: #fff;
-}
-.accent-swatch i {
-  display: block;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-}
-.accent-swatch svg {
-  position: absolute;
-}
-.accent-swatch[aria-checked='true'] {
-  border-color: var(--ink);
-  box-shadow: inset 0 0 0 1px var(--ink);
-}
-.custom-accent-fields {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-.custom-accent-fields .field {
-  width: 110px;
-  font-family: var(--font-sans);
-  font-variant-numeric: tabular-nums;
-}
-.swatch-big {
-  display: inline-block;
-  width: 28px;
-  height: 28px;
-  border: 1px solid var(--rule-strong);
-  border-radius: var(--radius);
-}
 .tone-sample {
   margin-top: 6px;
   font-family: var(--font-serif);
@@ -198,9 +177,5 @@
 @media (pointer: coarse) {
   .switch {
     min-height: 44px;
-  }
-  .accent-swatch {
-    width: 44px;
-    height: 44px;
   }
 }

@@ -17,7 +17,7 @@ export const TAGS: TagInfo[] = [
     id: 'fake-i',
     label: 'fake i',
     kind: 'spelling',
-    explain: 'After zh, ch, sh, r, z, c and s the letter i is not the i of ji or yi. The consonant is simply held and voiced.',
+    explain: 'After zh, ch, sh, r, z, c and s the letter i is not the i of ji or yi: the consonant is held and voiced.',
   },
   {
     id: 'ü-as-u',
@@ -49,7 +49,7 @@ export const TAGS: TagInfo[] = [
     kind: 'spelling',
     explain: 'er is a syllable in its own right, and also appears as the -r suffix (erhua) added to other syllables.',
   },
-  { id: 'null-initial', label: 'null initial', kind: 'initial', explain: 'No initial consonant: the syllable is just its final.' },
+  { id: 'null-initial', label: 'no initial', kind: 'initial', explain: 'No initial consonant: the syllable is just its final.' },
   { id: 'aspirated', label: 'aspirated', kind: 'initial', explain: 'Released with a strong puff of air (p, t, k, q, ch, c).' },
   {
     id: 'unaspirated',
@@ -70,8 +70,16 @@ export const TAGS: TagInfo[] = [
 
 export const TAG_BY_ID: Record<string, TagInfo> = Object.fromEntries(TAGS.map((t) => [t.id, t]));
 
-export const DIFFICULTY_LABEL = {
-  easy: 'easy: close to English',
-  tougher: 'tougher: aspiration, voicing, h',
-  problem: 'problem: tongue position',
+/** One plain sentence per difficulty group, for the syllable panel. */
+export const DIFFICULTY_SENTENCE = {
+  easy: (i: string) => `${i} is one of the easy initials: close to an English sound.`,
+  tougher: (i: string) => `${i} is one of the tougher initials: its English look-alike can mislead. Mandarin b, d and g are not voiced, p, t and k have a strong puff of air, and h is rougher.`,
+  problem: (i: string) => `${i} is one of the tricky initials: the tongue position is new for most English speakers.`,
+} as const;
+
+/** One line per difficulty group, for the Browse pages. */
+export const DIFFICULTY_DESCRIPTION = {
+  easy: 'Close to sounds English already has',
+  tougher: 'English look-alikes that mislead: b, d and g are not voiced, p, t and k have a strong puff of air, and h is rougher',
+  problem: 'The tongue position is new for most English speakers',
 } as const;

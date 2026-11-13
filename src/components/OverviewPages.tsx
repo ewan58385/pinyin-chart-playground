@@ -6,7 +6,7 @@
 import { FINAL_BLOCKS, INITIAL_BLOCKS, blockHash, type Block } from '../data/blocks';
 import { FINAL_BY_ID } from '../data/finals';
 import { INITIALS, INITIAL_BY_ID, type Difficulty } from '../data/initials';
-import { DIFFICULTY_LABEL, TAG_BY_ID } from '../data/tags';
+import { DIFFICULTY_DESCRIPTION, TAG_BY_ID } from '../data/tags';
 import { CATEGORY_BY_ID } from '../data/categories';
 import { YW_SPELLINGS } from '../lib/pinyin';
 import { blockSyllables, scopeCells } from '../lib/scope';
@@ -57,7 +57,7 @@ export function FinalsOverview() {
           <Crumbs />
           <header class="block-head">
             <h1>Finals</h1>
-            <p class="lede">The 36 finals in six groups, in the order of the chart's columns. Each group has a page of its own with every syllable that uses its finals.</p>
+            <p class="lede">The 36 finals in six groups, in the order of the chart’s columns. Each group has its own page with every syllable that uses its finals.</p>
           </header>
 
           {FINAL_BLOCKS.map((b) => (
@@ -88,11 +88,6 @@ export function FinalsOverview() {
                             {TAG_BY_ID[t].label}
                           </span>
                         ))}
-                        {!f.typeVerified && (
-                          <span class="tag flag" title={f.note}>
-                            type is a judgement call
-                          </span>
-                        )}
                       </span>
                       <small class="count">{count(syls.length, 'syllable')}</small>
                     </li>
@@ -112,7 +107,7 @@ export function FinalsOverview() {
                 </div>
               ))}
             </dl>
-            {FINAL_BY_ID.er.note && <p class="hint small">{FINAL_BY_ID.er.note}</p>}
+            {FINAL_BY_ID.er.note && <p class="hint">{FINAL_BY_ID.er.note}</p>}
           </section>
 
           <section class="member">
@@ -142,11 +137,11 @@ export function InitialsOverview() {
           <Crumbs />
           <header class="block-head">
             <h1>Initials</h1>
-            <p class="lede">The null initial (∅) and the 21 initials, in the order of the chart's rows. Each articulation group has a page of its own.</p>
+            <p class="lede">The 21 initials, plus ∅ for syllables with no initial, in the order of the chart’s rows. Each group has its own page.</p>
           </header>
 
           <section class="member">
-            <h2>By articulation</h2>
+            <h2>By how they are made</h2>
             <ul class="ov-list wide">
               {INITIAL_BLOCKS.map((b) => (
                 <li key={b.id}>
@@ -178,12 +173,12 @@ export function InitialsOverview() {
             <ul class="ov-list wide">
               {DIFFICULTIES.map((d) => {
                 const list = INITIALS.filter((i) => i.difficulty === d);
-                const flagged = list.filter((i) => !i.difficultyVerified && i.note);
+                const flagged = list.filter((i) => i.note);
                 return (
                   <li key={d}>
                     <span class="ov-block">
                       <MoreLink href={`#/browse/${d}`}>{CATEGORY_BY_ID[d].label}</MoreLink>
-                      <small>{DIFFICULTY_LABEL[d]}</small>
+                      <small>{DIFFICULTY_DESCRIPTION[d]}.</small>
                     </span>
                     <span class="ov-initials">
                       {list.map((i) => {
@@ -217,7 +212,7 @@ export function InitialsOverview() {
 
           <section class="member">
             <h2>y and w</h2>
-            <p>{TAG_BY_ID['spelling-variant'].explain} These syllables sit on the ∅ row of the chart, under the final they are a spelling of:</p>
+            <p>{TAG_BY_ID['spelling-variant'].explain} These syllables sit in the ∅ (no initial) row of the chart, under the final they spell:</p>
             <ul class="yw-list" lang="zh-Latn">
               {Object.entries(YW_SPELLINGS).map(([spelling, v]) => (
                 <li key={spelling}>

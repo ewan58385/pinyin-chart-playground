@@ -45,7 +45,7 @@ export const INITIALS: Initial[] = [
     difficultyVerified: false,
     tags: ['dental-sibilant'],
     note:
-      'The spec lists s both as "easy" (m f n l s) and inside the z/c/s problem group. It is tagged easy here, and still linked to z/c as a confusable.',
+      's is close to English, but keep it apart from sh and x: the three are easy to mix up.',
   },
 
   { id: 'zh', display: 'zh', block: 'retroflex', difficulty: 'problem', difficultyVerified: true, tags: ['unaspirated', 'retroflex'] },

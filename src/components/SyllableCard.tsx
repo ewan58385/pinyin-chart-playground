@@ -57,12 +57,45 @@ export function SyllableCard({ s, only }: { s: Syllable; only?: number[] }) {
   );
 }
 
-/** The one-line key that goes with a list of cards. */
+/**
+ * The key for syllable cards, shared by every page that lists them. The
+ * sample boxes use the cards' own classes, so the key always matches.
+ */
 export function CardLegend() {
+  const sample = (cls: string, text: string) => (
+    <span class={`tone-btn key-box ${cls}`} aria-hidden="true">
+      <span class="han">{text}</span>
+    </span>
+  );
   return (
-    <p class="hint small card-legend">
-      Each box is one tone, first to neutral: the tone mark above, the example character below. Tap a box to open that tone, or the syllable's name to open
-      the syllable. A missing box means that tone does not occur; a dot means no common character.
-    </p>
+    <div class="card-legend">
+      <p>Each syllable has up to five tones. The boxes run from first tone to neutral, left to right.</p>
+      <ul class="legend-key" aria-label="Key">
+        <li>
+          {sample('s-new', 'ā')}
+          New
+        </li>
+        <li>
+          {sample('s-shaky', 'ā')}
+          Shaky
+        </li>
+        <li>
+          {sample('s-solid', 'ā')}
+          Solid
+        </li>
+        <li>
+          {sample('s-new rec', 'ā')}
+          Line underneath: you have a recording
+        </li>
+        <li>
+          {sample('s-new none', '·')}
+          Dot: no common example character
+        </li>
+        <li>
+          <span class="tone-btn key-box absent" aria-hidden="true" />
+          Dashed box: this tone does not occur
+        </li>
+      </ul>
+    </div>
   );
 }

@@ -19,7 +19,7 @@ function CategoryIndex() {
         <Crumbs />
         <header class="block-head">
           <h1>Browse by category</h1>
-          <p class="lede">The same syllables, sorted by what kind of sound they are. Every list is derived from the labels and tags in the chart data.</p>
+          <p class="lede">The same syllables, sorted by what kind of sound they are.</p>
         </header>
         {CATEGORY_SECTIONS.map((sec) => (
           <section class="member" key={sec.kind}>
@@ -65,11 +65,7 @@ function CategoryPage({ c }: { c: Category }) {
         <header class="block-head">
           <h1>{c.label}</h1>
           <p class="lede">{c.description}</p>
-          {c.note && (
-            <p class="hint judgement">
-              <span class="tag flag">judgement call</span> {c.note}
-            </p>
-          )}
+          {c.note && <p class="hint judgement">{c.note}</p>}
           <div class="block-nextprev">
             {list[index - 1] ? <a href={`#/browse/${list[index - 1].id}`} rel="prev">← {list[index - 1].label}</a> : <span />}
             {list[index + 1] ? <a href={`#/browse/${list[index + 1].id}`} rel="next">{list[index + 1].label} →</a> : <span />}

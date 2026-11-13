@@ -60,8 +60,8 @@ export function StudyCard({
                 type="button"
                 class="icon-btn listen"
                 disabled={!t.hasAudio}
-                aria-label={t.hasAudio ? (playing ? `Stop ${cell.display}` : `Listen to ${cell.display}`) : `${cell.display}: no native recording`}
-                title={t.hasAudio ? undefined : 'No native recording'}
+                aria-label={t.hasAudio ? (playing ? `Stop ${cell.display}` : `Listen to ${cell.display}`) : `${cell.display}: no recording`}
+                title={t.hasAudio ? undefined : 'No recording'}
                 onClick={() => (playing ? stopPlayback() : void play([nativeItem(cell.numeric)], { rate: set.rate }))}
               >
                 {playing ? <Stop size={16} aria-hidden="true" /> : <Play size={16} aria-hidden="true" />}

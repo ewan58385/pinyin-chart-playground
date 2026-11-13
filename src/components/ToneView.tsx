@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { hasNativeAudio, AUDIO_CLIPS_BY_TONE, type ExampleWord, type Syllable, type ToneCell } from '../data';
+import { hasNativeAudio, type ExampleWord, type Syllable, type ToneCell } from '../data';
 import { TONE_NAMES } from '../lib/pinyin';
 import {
   addRecording,
@@ -147,7 +147,7 @@ function PitchOverlay({
     <div class="pitch">
       <div class="pitch-head">
         <span class="hint small">
-          {mode === 'relative' ? 'Semitones around each speaker\u2019s own middle pitch: compare the shapes.' : 'Pitch in hertz (log scale): the real heights.'}
+          {mode === 'relative' ? 'Each voice is centred on its own middle pitch, so you can compare the shapes.' : 'Actual pitch in hertz: how high or low each voice is.'}
         </span>
         <div class="seg small" role="radiogroup" aria-label="Pitch scale">
           {(['relative', 'hz'] as PitchMode[]).map((m) => (
@@ -163,7 +163,7 @@ function PitchOverlay({
             <span style={{ top: `${(yOf(t.value, axis) * 100).toFixed(1)}%` }}>{t.label}</span>
           ))}
         </div>
-        <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label="Pitch contour of the native clip and your take, overlaid">
+        <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label="Pitch of the native recording and of yours, drawn over each other">
           {axis.ticks.map((t) => (
             <line class="grid" x1="0" x2={W} y1={y(t.value)} y2={y(t.value)} />
           ))}
@@ -184,11 +184,11 @@ function PitchOverlay({
             mine {medianLabel(mine?.pitch ?? undefined) && <b>{medianLabel(mine?.pitch ?? undefined)}</b>}
           </span>
         )}
-        {hasTake && !mine && <span>Analysing your take…</span>}
+        {hasTake && !mine && <span>Analysing your recording…</span>}
       </div>
       {reason && (
         <p class="nocontour" role="status">
-          No pitch line for your take. {reason}
+          No pitch line for your recording. {reason}
         </p>
       )}
     </div>
@@ -220,7 +220,7 @@ function TakeRow({ take, current, onSelect }: { take: RecordingMeta; current: bo
       <input
         class="name"
         value={take.name}
-        aria-label="Take name"
+        aria-label="Recording name"
         maxLength={60}
         onFocus={onSelect}
         onChange={(e) => {
@@ -234,9 +234,9 @@ function TakeRow({ take, current, onSelect }: { take: RecordingMeta; current: bo
       <button
         type="button"
         class={`icon-btn${take.best ? ' best' : ''}`}
-        aria-label={take.best ? `${take.name} is your best take. Unmark it` : `Mark ${take.name} as your best take`}
+        aria-label={take.best ? `${take.name} is your best recording. Unmark it` : `Mark ${take.name} as your best recording`}
         aria-pressed={take.best}
-        title="Best take"
+        title="Best recording"
         onClick={() => updateRecording(take.id, { best: !take.best })}
       >
         <Star size={17} aria-hidden="true" />
@@ -335,7 +335,7 @@ function ExampleEditor({ cell, onDone }: { cell: string; onDone: () => void }) {
           </button>
         )}
       </div>
-      <p class="hint small">Your edits are kept with your data and survive app updates.</p>
+      <p class="hint small">Your edits are saved on this device and included in your backups.</p>
     </form>
   );
 }
@@ -404,7 +404,7 @@ export function ToneView({ syl, cell }: { syl: Syllable; cell: ToneCell }) {
       active.current = null;
       if (!result) return;
       if (result.durationMs < 300) {
-        setRecError('That take was too short to keep.');
+        setRecError('That recording was too short to keep.');
         return;
       }
       const data = await result.blob.arrayBuffer();
@@ -418,12 +418,12 @@ export function ToneView({ syl, cell }: { syl: Syllable; cell: ToneCell }) {
         ({ start: trimStart, end: trimEnd } = speechBounds(decoded));
         peaks = peaksOf(decoded, 72, trimStart, trimEnd);
       }
-      const numbers = takes.map((t) => Number(/^Take (\d+)$/.exec(t.name)?.[1] ?? 0));
+      const numbers = takes.map((t) => Number(/^(?:Take|Recording) (\d+)$/.exec(t.name)?.[1] ?? 0));
       const now = Date.now();
       const meta: RecordingMeta = {
         id: uid(),
         cell: id,
-        name: `Take ${Math.max(0, ...numbers) + 1}`,
+        name: `Recording ${Math.max(0, ...numbers) + 1}`,
         createdAt: now,
         updatedAt: now,
         mimeType: result.mimeType,
@@ -473,7 +473,7 @@ export function ToneView({ syl, cell }: { syl: Syllable; cell: ToneCell }) {
                 type="button"
                 class="play-native"
                 disabled={!hasAudio}
-                aria-label={hasAudio ? (nativePlaying ? 'Stop' : `Play the native recording of ${cell.display}`) : 'No native recording'}
+                aria-label={hasAudio ? (nativePlaying ? 'Stop' : `Play the native recording of ${cell.display}`) : 'No recording'}
                 onClick={() => (nativePlaying ? stopPlayback() : void play([nativeItem(id)], { rate: s.rate }))}
               >
                 {nativePlaying ? <Stop size={20} aria-hidden="true" /> : <Play size={20} aria-hidden="true" />}
@@ -489,25 +489,13 @@ export function ToneView({ syl, cell }: { syl: Syllable; cell: ToneCell }) {
               </div>
               <div class="flags">
                 {(ex.edited.character || ex.edited.meaning || ex.edited.words) && <span class="tag">edited by you</span>}
-                {cell.status !== 'standard' && (
-                  <span class="tag flag" title={cell.status === 'neutral-in-word' ? 'This neutral-tone reading comes from one source (CC-CEDICT word entries).' : `Only one source attests this syllable and tone: ${cell.sources.join(', ')}.`}>
-                    {cell.status === 'neutral-in-word' ? 'tone from one source' : 'unverified cell'}
-                  </span>
-                )}
-                {ex.bundled && !ex.bundled.verified && !ex.edited.character && (
-                  <span class="tag flag" title={ex.bundled.unverifiedReason}>
-                    character unverified
+                {cell.status === 'single-source' && (
+                  <span class="tag" title="Rarely used in everyday Mandarin">
+                    Rare
                   </span>
                 )}
               </div>
             </div>
-            {!hasAudio && (
-              <p class="hint" style="margin-top:10px">
-                {cell.tone === 5 && AUDIO_CLIPS_BY_TONE[5] === 0
-                  ? 'No native recording: the audio set has no neutral-tone recordings. A neutral tone is short and light, and its pitch depends on the tone before it, so listen for it inside the example words.'
-                  : 'No native recording of this syllable and tone in the audio set.'}
-              </p>
-            )}
             {playError.value && (
               <p class="error-text" role="alert" style="margin-top:8px">
                 {playError.value}
@@ -531,7 +519,7 @@ export function ToneView({ syl, cell }: { syl: Syllable; cell: ToneCell }) {
                   </>
                 ) : (
                   <>
-                    No example character here, so this searches forvo.com for <span class="py">{forvo.term}</span>. Needs a connection.
+                    Searches forvo.com for <span class="py">{forvo.term}</span>. Needs a connection.
                   </>
                 )}
               </span>
@@ -609,13 +597,13 @@ export function ToneView({ syl, cell }: { syl: Syllable; cell: ToneCell }) {
               type="button"
               class="icon-btn"
               disabled={!take}
-              aria-label={minePlaying ? 'Stop my take' : take ? `Play ${take.name}` : 'No take yet'}
+              aria-label={minePlaying ? 'Stop my recording' : take ? `Play ${take.name}` : 'No recording yet'}
               onClick={() => take && (minePlaying ? stopPlayback() : void play([takeItem(take)], { rate: s.rate }))}
             >
               {minePlaying ? <Stop size={16} aria-hidden="true" /> : <Play size={16} aria-hidden="true" />}
             </button>
             <span class="who">Mine</span>
-            {take ? <Wave peaks={take.peaks.length ? take.peaks : [0]} /> : <span class="none">Record a take to compare</span>}
+            {take ? <Wave peaks={take.peaks.length ? take.peaks : [0]} /> : <span class="none">Record yourself to compare</span>}
           </div>
           {s.showPitch && <PitchOverlay reference={native?.pitch} mine={take ? mineAnalysis : undefined} hasTake={!!take} />}
         </div>
@@ -685,7 +673,7 @@ export function ToneView({ syl, cell }: { syl: Syllable; cell: ToneCell }) {
         )}
 
         {takes.length > 0 && (
-          <ul class="takes" aria-label="My takes">
+          <ul class="takes" aria-label="My recordings">
             {takes.map((t) => (
               <TakeRow key={t.id} take={t} current={t.id === take?.id} onSelect={() => setTakeId(t.id)} />
             ))}

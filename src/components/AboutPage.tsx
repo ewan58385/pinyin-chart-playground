@@ -1,5 +1,4 @@
-import { AUDIO_CLIPS_BY_TONE, AUDIO_SOURCES, AUDIO_TOTAL_BYTES, CELLS, DATA_META, SYLLABLES, hasNativeAudio } from '../data';
-import { TONES } from '../lib/pinyin';
+import { AUDIO_CLIPS_BY_TONE, AUDIO_SOURCES, AUDIO_TOTAL_BYTES, DATA_META, SYLLABLES, hasNativeAudio } from '../data';
 import { totalClipCount } from '../lib/audio';
 
 const Ext = ({ href, children }: { href: string; children: preact.ComponentChildren }) => (
@@ -8,114 +7,106 @@ const Ext = ({ href, children }: { href: string; children: preact.ComponentChild
   </a>
 );
 
+/** What each data set is credited for. */
+const CREDIT_FOR: Record<string, string> = {
+  cedict: 'Example characters, meanings and example words',
+  unihan: 'Pronunciations of characters',
+  subtlexChr: 'How common each character is',
+  subtlexWf: 'How common each word is',
+  hsk: 'Word lists by HSK level',
+};
+
+const n = (x: number) => x.toLocaleString('en-GB');
+
+const FONTS: { name: string; href: string; by: string }[] = [
+  { name: 'Source Serif 4', href: 'https://github.com/adobe-fonts/source-serif', by: 'the Source Serif 4 Project Authors' },
+  { name: 'Source Sans 3', href: 'https://github.com/adobe-fonts/source-sans', by: 'Adobe' },
+  { name: 'Literata', href: 'https://github.com/googlefonts/literata', by: 'the Literata Project Authors' },
+  { name: 'Inter', href: 'https://github.com/rsms/inter', by: 'the Inter Project Authors' },
+  { name: 'Noto Serif and Noto Sans', href: 'https://github.com/notofonts/latin-greek-cyrillic', by: 'the Noto Project Authors' },
+  { name: 'Source Han Serif and Source Han Sans', href: 'https://github.com/adobe-fonts/source-han-serif', by: 'Adobe' },
+];
+
 export function AboutPage() {
   const c = DATA_META.counts;
-  const visibleCells = c.toneCellsStandard + c.toneCellsNeutralInWord;
+  const tones = c.toneCellsStandard + c.toneCellsNeutralInWord;
+  // Tones without a native recording, among those shown by default.
   const silent = SYLLABLES.flatMap((s) => s.tones).filter((t) => t.status !== 'single-source' && !hasNativeAudio(t.numeric));
-  const noAudio = silent.length;
-  // Worded from the actual coverage, tone by tone.
-  const silentByTone = TONES.map((tone) => ({ tone, n: silent.filter((t) => t.tone === tone).length })).filter((x) => x.n > 0);
-  const toneWord = (tone: number) => (tone === 5 ? 'neutral tone' : `tone ${tone}`);
-  const unverifiedChars = Object.values(CELLS).filter((x) => !x.verified).length;
+  const onlyNeutralSilent = silent.length > 0 && silent.every((t) => t.tone === 5) && AUDIO_CLIPS_BY_TONE[5] === 0;
   return (
-    <article class="page">
-      <h1>About this chart</h1>
+    <article class="page about">
+      <h1>About Pinyin Chart</h1>
       <p class="lede">
-        A personal study tool for Mandarin pinyin: every syllable and tone with native audio, an example character, and your own notes and recordings.
+        A study companion for Mandarin pronunciation: every syllable and tone, with a native recording to listen to, an example character, and room for your
+        own notes and recordings.
       </p>
 
       <section>
         <h2>What is in it</h2>
         <div class="stat-grid">
           <div class="stat">
-            <b>{c.syllablesStandard}</b>
+            <b>{n(c.syllablesStandard)}</b>
             <span>syllables</span>
           </div>
           <div class="stat">
-            <b>{visibleCells}</b>
-            <span>syllable-and-tone cells</span>
+            <b>{n(tones)}</b>
+            <span>tones in all</span>
           </div>
           <div class="stat">
-            <b>{c.cellsWithCharacter}</b>
+            <b>{n(c.cellsWithCharacter)}</b>
             <span>with an example character</span>
           </div>
           <div class="stat">
-            <b>{totalClipCount}</b>
-            <span>native clips, {(AUDIO_TOTAL_BYTES / 1024 / 1024).toFixed(1)} MB</span>
+            <b>{n(totalClipCount)}</b>
+            <span>native recordings, {(AUDIO_TOTAL_BYTES / 1024 / 1024).toFixed(1)} MB</span>
           </div>
         </div>
-        <p style="margin-top:12px">
-          The syllable list is not made by combining initials with finals. A syllable or tone is on the chart because dictionaries attest it, and it counts
-          as verified when at least two independent sources agree. Data built {DATA_META.generatedAt}.
-        </p>
       </section>
 
       <section>
         <h2>Finding your way</h2>
         <ul class="plain">
           <li>
-            <a href="#/">Chart</a>: every syllable. Group names and initials in its headers open their own pages.
+            <a href="#/">Chart</a>: every syllable. The group names and initials in its headings open their own pages.
           </li>
           <li>
-            <a href="#/finals">Finals</a> and <a href="#/initials">Initials</a>: overviews of the 36 finals in six groups and of the 21 initials and the null initial, each leading
-            to a page per group.
+            <a href="#/finals">Finals</a> and <a href="#/initials">Initials</a>: the 36 finals in six groups, and the 21 initials in seven groups, each with a page per
+            group.
           </li>
           <li>
-            <a href="#/browse">Browse</a>: the same syllables by category (type of final, spelling tags, difficulty and articulation of the initial), derived from the
-            labels in the data.
+            <a href="#/browse">Browse</a>: the same syllables sorted by kind of sound: type of final, tricky spellings, and how hard each initial is.
           </li>
           <li>
-            <a href="#/learn">Learn</a>: nine stages from the sounds the data labels simplest to the hardest, what each covers and why, a picture of where its
-            syllables sit on the chart, and its syllables to listen to and mark. The order follows those labels (simple, compound and nasal finals; easy, tougher and problem initials); progress is read from
-            the new / shaky / solid marks you set, and nothing is locked.
+            <a href="#/learn">Learn</a>: nine stages from the easiest sounds to the hardest. Each stage explains what it covers and why it comes where it does,
+            shows where its syllables sit on the chart, and lets you listen to them and mark how well you know them. Nothing is locked.
           </li>
           <li>
-            <a href="#/data">My data</a>: backup and restore. One zip holds everything you have added in this browser; restoring it on another device
-            merges it in.
+            <a href="#/data">My data</a>: what is saved on this device, recordings for offline use, Anki cards, backup and restore.
           </li>
         </ul>
       </section>
 
       <section>
-        <h2>What is not certain</h2>
+        <h2>Limitations</h2>
         <ul class="plain">
+          <li>Meanings are kept short, and an example character or word is not always the best one. You can edit any of them.</li>
           <li>
-            <b>{c.toneCellsSingleSource} tone cells</b> (including {c.syllablesSingleSource} whole syllables:{' '}
-            <span class="py">
-              {SYLLABLES.filter((s) => s.status === 'single-source')
-                .map((s) => s.id)
-                .join(', ')}
-            </span>
-            ) are attested by one source only. They are hidden unless you turn on “Unverified cells” in the display options.
+            Pinyin shows each syllable’s own tone. Tone changes in connected speech, such as 不 before a fourth tone, 一, or two third tones in a row, are not
+            shown.
           </li>
-          <li>
-            <b>{c.toneCellsNeutralInWord} neutral-tone cells</b> rest on CC-CEDICT word entries alone, and <b>{unverifiedChars} example characters</b> have a
-            reading that only CC-CEDICT gives. Both are shown, and flagged where they appear.
-          </li>
-          {noAudio > 0 && (
-            <li>
-              <b>
-                {noAudio} {noAudio === 1 ? 'cell has' : 'cells have'} no native audio
-              </b>
-              {silentByTone.length === 1
-                ? `, all of them ${silentByTone[0].tone === 5 ? 'neutral tones' : toneWord(silentByTone[0].tone)}.`
-                : ` (${silentByTone.map((x) => `${x.n} ${toneWord(x.tone)}`).join(', ')}).`}
-              {AUDIO_CLIPS_BY_TONE[5] === 0 &&
-                ' The audio set has no usable neutral-tone recordings: its few neutral-tone files did not pass the checks every clip goes through, so they are not used.'}{' '}
-              The cells without a clip say so where they appear.
-            </li>
+          <li>A few rare syllables and tones are hidden. To see them, turn on “Rare syllables” in the ⋯ menu.</li>
+          {onlyNeutralSilent ? (
+            <li>Neutral tones have no native recording. Listen for them in the example words, or on Forvo.</li>
+          ) : (
+            silent.length > 0 && <li>{silent.length} tones have no native recording.</li>
           )}
-          <li>Glosses are shortened automatically from CC-CEDICT and can be clumsy. Any character, gloss or example word can be edited.</li>
-          <li>
-            Pinyin for example words is in dictionary form: tone changes in running speech (不 before a fourth tone, 一, two third tones together) are not
-            applied.
-          </li>
+          <li>All the native recordings are by one speaker. Voices differ, so listen to other speakers too, for example on Forvo.</li>
         </ul>
       </section>
 
       <section>
-        <h2>Syllables with no square</h2>
-        <p>These are attested but cannot be written as one of the 22 rows by 36 columns, so they are not on the chart:</p>
+        <h2>Sounds not on the chart</h2>
+        <p>A few sounds do not fit the chart’s rows and columns, so they are not on it:</p>
         <ul class="plain">
           {DATA_META.offGrid.map((o) => (
             <li key={o.id}>
@@ -126,7 +117,7 @@ export function AboutPage() {
                   (<span class="han">{o.evidence.slice(0, 3).join(' ')}</span>)
                 </>
               )}
-              {o.id === 'r' && ': the erhua suffix'}
+              {o.id === 'r' && ': the -r ending (erhua)'}
               {o.id === 'ê' && ': would need a column of its own'}
               {o.id === 'yo' && ': would need an “io” column'}
             </li>
@@ -135,49 +126,45 @@ export function AboutPage() {
       </section>
 
       <section>
-        <h2>Sources and licences</h2>
+        <h2>Credits</h2>
         <dl class="sources">
           {Object.entries(AUDIO_SOURCES).map(([key, s]) => (
             <div key={key}>
-              <dt>Native audio: {s.url !== 'UNKNOWN' ? <Ext href={s.url}>{s.name}</Ext> : s.name}</dt>
+              <dt>Native recordings</dt>
               <dd>
-                Spoken by {s.speaker}. Authors: {s.author}. {s.copyright}. Licence:{' '}
-                {s.licenceUrl !== 'UNKNOWN' ? <Ext href={s.licenceUrl}>{s.licence}</Ext> : s.licence}.
-                {s.url === 'UNKNOWN' && ' Web address: UNKNOWN (the files and their README do not give one).'} The clips were trimmed, levelled and
-                re-encoded for this app; those adapted clips are shared under the same licence. Every clip, with its original file name, is listed in
-                audio-manifest.json in the source repository.
+                Spoken by {s.speaker}, from {s.url !== 'UNKNOWN' ? <Ext href={s.url}>{s.name}</Ext> : s.name} by {s.author}. {s.copyright.replace(/^Copyright©\s*/, '© ')}.
+                Licence: {s.licenceUrl !== 'UNKNOWN' ? <Ext href={s.licenceUrl}>{s.licence}</Ext> : s.licence}. The recordings in this app have been trimmed and
+                their volume evened out; these versions are shared under the same licence.
               </dd>
             </div>
           ))}
           {Object.entries(DATA_META.sources).map(([key, s]) => (
             <div key={key}>
-              <dt>
-                <Ext href={s.homepage}>{s.name}</Ext>
-              </dt>
+              <dt>{CREDIT_FOR[key] ?? s.name}</dt>
               <dd>
-                {s.author}. Licence: <Ext href={s.licenceUrl}>{s.licence}</Ext>.{' '}
-                {key === 'cedict' && 'Readings, glosses and example words. The example data in this app is a derivative and is shared under the same licence.'}
-                {key === 'unihan' && 'Second source for readings (kXHC1983, kTGHZ2013, kHanyuPinlu, kMandarin).'}
-                {key === 'subtlexChr' && 'Character frequency ranks. Cai, Q. & Brysbaert, M. (2010), PLoS ONE 5(6): e10729.'}
-                {key === 'subtlexWf' && 'Word frequencies, used to choose example characters and words.'}
-                {key === 'hsk' && 'Which words and single characters are taught, and at what level.'}
+                <Ext href={s.homepage}>{s.name}</Ext>, by {s.author}. Licence: <Ext href={s.licenceUrl}>{s.licence}</Ext>.
+                {key === 'cedict' && ' The example data in this app is adapted from it and shared under the same licence.'}
+                {key === 'subtlexChr' && ' Cai, Q. & Brysbaert, M. (2010), PLoS ONE 5(6): e10729.'}
               </dd>
             </div>
           ))}
           <div>
-            <dt>
-              <Ext href="https://forvo.com/languages/zh/">Forvo</Ext>
-            </dt>
+            <dt>Hear it on Forvo</dt>
             <dd>
-              The “Hear it on Forvo” links open forvo.com, an external site that is not part of this app. Nothing is fetched, stored or cached from it.
+              The “Hear it on Forvo” links open <Ext href="https://forvo.com/languages/zh/">forvo.com</Ext>, a separate website with recordings from its own
+              community.
             </dd>
           </div>
           <div>
             <dt>Typefaces</dt>
             <dd>
-              <Ext href="https://github.com/adobe-fonts/source-serif">Source Serif 4</Ext>, <Ext href="https://github.com/adobe-fonts/source-sans">Source Sans 3</Ext>{' '}
-              and <Ext href="https://github.com/adobe-fonts/source-han-serif">Source Han Serif</Ext>, by Adobe, under the SIL Open Font License 1.1. They are
-              subsetted to the characters this app uses and renamed, as the licence requires for modified versions.
+              {FONTS.map((f, i) => (
+                <>
+                  {i > 0 && (i === FONTS.length - 1 ? ' and ' : ', ')}
+                  <Ext href={f.href}>{f.name}</Ext> by {f.by}
+                </>
+              ))}
+              , all under the SIL Open Font License 1.1. The copies in this app contain only the characters it uses and are renamed, as the licence requires.
             </dd>
           </div>
           <div>

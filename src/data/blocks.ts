@@ -62,7 +62,7 @@ export const FINAL_BLOCKS: Block[] = FINAL_GROUPS.map((g) => {
 });
 
 const INITIAL_BLOCK_INFO: Record<string, { label: string; title: string; description: string; confusable: { id: string; why: string }[] }> = {
-  null: { label: '∅', title: 'No initial', description: 'Syllables that are a final on its own, written with y or w where pinyin requires it.', confusable: [] },
+  null: { label: '∅', title: 'No initial', description: 'Syllables with no initial consonant: just a final, written with y or w where pinyin needs it.', confusable: [] },
   labial: { label: 'b p m f', title: 'Labial initials', description: 'Made with the lips: b and p (unaspirated and aspirated), m, f.', confusable: [] },
   alveolar: { label: 'd t n l', title: 'Alveolar initials', description: 'Made with the tongue tip at the ridge behind the teeth: d and t (unaspirated and aspirated), n, l.', confusable: [] },
   sibilant: {

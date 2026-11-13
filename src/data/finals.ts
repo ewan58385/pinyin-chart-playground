@@ -57,7 +57,7 @@ export const FINAL_GROUPS: { id: FinalGroup; finals: Final[] }[] = [
       f('er', 'E', 'compound', {
         typeVerified: false,
         note:
-          'er is a rhotic final that textbooks usually class on its own. It is filed under "compound" here only because the chart allows three types.',
+          'er is a sound of its own, a vowel said with the tongue curled back. It is listed with the compound finals here.',
       }),
     ],
   },

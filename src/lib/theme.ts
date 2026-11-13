@@ -5,8 +5,8 @@
  * them before the first paint; IndexedDB stays the source of truth and the
  * cache is rewritten from it on every load.
  */
-import { ACCENT_BY_ID, CJK_FACES, PRESET_BY_ID, PRESETS, TEXT_SIZES, TONE_PALETTES, TYPEFACES, type Mode, type Palette } from '../data/themes';
-import { AA_TEXT, contrast, ensureContrast, mix } from './contrast';
+import { ACCENT, CJK_FACES, PRESET_BY_ID, PRESETS, TEXT_SIZES, TONE_PALETTES, TYPEFACES, type Mode, type Palette } from '../data/themes';
+import { contrast, mix } from './contrast';
 
 export const APPEARANCE_CACHE_KEY = 'pinyin-chart-appearance';
 
@@ -18,16 +18,13 @@ export interface DerivedAccent {
 }
 
 /**
- * The four accent tokens from an accent colour and the palette it sits on.
- * The accent is pushed to AA against the paper if needed (custom colours);
- * on-accent is whichever of the paper and the ink reads better on it.
+ * The four accent tokens for a palette: the fixed vermilion and its strong
+ * shade, a wash mixed from it and the paper, and whichever of near-white and
+ * near-black reads better on it.
  */
-export function deriveAccent(accentHex: string, strongHex: string | null, pal: Palette): DerivedAccent {
+export function deriveAccent(mode: Mode, pal: Palette): DerivedAccent {
+  const { accent, strong } = ACCENT[mode];
   const darkPaper = contrast('#000000', pal.paper) < contrast('#ffffff', pal.paper);
-  let accent = ensureContrast(accentHex, pal.paper) ?? (darkPaper ? '#e0e0e0' : '#333333');
-  // Also against the lightest/darkest surface it can sit on.
-  for (const bg of [pal.surface, pal.sunken]) if (contrast(accent, bg) < AA_TEXT) accent = ensureContrast(accent, bg) ?? accent;
-  const strong = strongHex && contrast(strongHex, pal.paper) >= AA_TEXT ? strongHex : (ensureContrast(mix(accent, pal.ink, 0.25), pal.paper) ?? accent);
   const wash = mix(pal.paper, accent, darkPaper ? 0.22 : 0.14);
   const onAccent = contrast('#ffffff', accent) >= contrast('#000000', accent) ? mix('#ffffff', pal.paper, 0.1) : mix('#000000', pal.paper, 0.1);
   return { accent, strong, wash, onAccent };
@@ -36,8 +33,6 @@ export function deriveAccent(accentHex: string, strongHex: string | null, pal: P
 export interface AppearanceSettings {
   theme: 'system' | 'light' | 'dark';
   preset: string;
-  accent: string;
-  customAccent: string;
   typeface: string;
   cjk: string;
   textSize: number;
@@ -59,8 +54,7 @@ export function resolveAppearance(s: AppearanceSettings, dark = s.theme === 'dar
   const mode: Mode = dark ? 'dark' : 'light';
   const preset = PRESET_BY_ID[s.preset] ?? PRESETS[0];
   const pal = preset[mode];
-  const curated = ACCENT_BY_ID[s.accent];
-  const acc = s.accent === 'custom' && /^#?[0-9a-f]{6}$/i.test(s.customAccent) ? deriveAccent(s.customAccent, null, pal) : deriveAccent((curated ?? ACCENT_BY_ID.vermilion)[mode].accent, (curated ?? ACCENT_BY_ID.vermilion)[mode].strong, pal);
+  const acc = deriveAccent(mode, pal);
   const face = TYPEFACES.find((t) => t.id === s.typeface) ?? TYPEFACES[0];
   const han = CJK_FACES.find((c) => c.id === s.cjk) ?? CJK_FACES[0];
   const vars: Record<string, string> = {

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { hasNativeAudio, type Syllable, type ToneCell } from '../data';
 import { FINAL_BY_ID } from '../data/finals';
 import { INITIAL_BY_ID } from '../data/initials';
-import { TAG_BY_ID, DIFFICULTY_LABEL } from '../data/tags';
+import { TAG_BY_ID, DIFFICULTY_SENTENCE } from '../data/tags';
 import { confusablesFor } from '../data/confusables';
 import {
   getSyllable,
@@ -18,13 +18,6 @@ import { nativeItem, play, stopPlayback, nowPlaying } from '../lib/audio';
 import { narrow } from '../lib/viewport';
 import { Close, Play, Stop } from './icons';
 import { ToneView } from './ToneView';
-
-const SOURCE_NAME: Record<string, string> = {
-  cedict: 'CC-CEDICT',
-  xhc: 'Xiàndài Hànyǔ Cídiǎn (via Unihan)',
-  tghz: 'Tōngyòng Guīfàn Hànzì Zìdiǎn (via Unihan)',
-  pinlu: 'Xiàndài Hànyǔ Pínlǜ Cídiǎn (via Unihan)',
-};
 
 function ToneTabs({ syl, tones, current }: { syl: Syllable; tones: ToneCell[]; current: ToneCell }) {
   const ov = overrides.value;
@@ -90,7 +83,7 @@ export function Confusables({ syl, tone }: { syl: Syllable; tone: ToneCell }) {
                 type="button"
                 class="btn"
                 disabled={!mine || !theirs}
-                aria-label={mine && theirs ? `Hear ${mine.display} then ${theirs.display}` : 'No audio for this pair'}
+                aria-label={mine && theirs ? `Hear ${mine.display} then ${theirs.display}` : 'No recording for this pair'}
                 onClick={() => mine && theirs && void play([nativeItem(mine.numeric), nativeItem(theirs.numeric)], { rate: settings.value.rate, gapMs: 450 })}
               >
                 {playingPair && nowPlaying.value === `native:${theirs?.numeric}` ? <Stop size={14} aria-hidden="true" /> : <Play size={14} aria-hidden="true" />}
@@ -194,8 +187,8 @@ export function Detail() {
                   <span class="tag">{initial.difficulty}</span>
                 </dt>
                 <dd>
-                  Initial {initial.display} is in the “{DIFFICULTY_LABEL[initial.difficulty]}” group.
-                  {!initial.difficultyVerified && initial.note ? ` ${initial.note}` : ''}
+                  {DIFFICULTY_SENTENCE[initial.difficulty](initial.display)}
+                  {initial.note ? ` ${initial.note}` : ''}
                 </dd>
               </>
             )}
@@ -210,18 +203,18 @@ export function Detail() {
                 </>
               ))}
           </dl>
-          <div class="fineprint" style="margin-top:12px">
-            {syl.pseudoInitial && (
-              <p>
-                Spelled with {syl.pseudoInitial}-, but filed on the ∅ row under final {final.surface}.
-              </p>
-            )}
-            {!final.typeVerified && final.note && <p>{final.note}</p>}
-            <p>
-              Attested in {syl.sources.map((x) => SOURCE_NAME[x] ?? x).join('; ')}.
-              {syl.status === 'single-source' && ' Only one source has this syllable, so it is marked unverified.'}
-            </p>
-          </div>
+          {(syl.pseudoInitial || final.note || syl.status === 'single-source') && (
+            <div class="fineprint" style="margin-top:12px">
+              {syl.pseudoInitial && (
+                <p>
+                  Written with {syl.pseudoInitial}, but y and w are not initials: {syl.id} is the final {final.surface} on its own, so it sits in the ∅ (no
+                  initial) row.
+                </p>
+              )}
+              {final.note && <p>{final.note}</p>}
+              {syl.status === 'single-source' && <p>A rare syllable: you are unlikely to meet it in everyday Mandarin.</p>}
+            </div>
+          )}
         </section>
       </div>
     </aside>

@@ -48,9 +48,10 @@ describe('export zip', () => {
   });
 
   it('refuses files that are not exports', () => {
-    expect(() => unpackExport(strToU8('not a zip'))).toThrow(/not a zip/);
-    expect(() => unpackExport(zipSync({ 'other.txt': strToU8('hi') }))).toThrow(/no data\.json/);
-    expect(() => unpackExport(zipSync({ 'data.json': strToU8('{"format":"something-else"}') }))).toThrow(/not a Pinyin Chart export/);
+    expect(() => unpackExport(strToU8('not a zip'))).toThrow(/not a Pinyin Chart backup/);
+    expect(() => unpackExport(zipSync({ 'other.txt': strToU8('hi') }))).toThrow(/not a Pinyin Chart backup/);
+    expect(() => unpackExport(zipSync({ 'data.json': strToU8('{oops') }))).toThrow(/could not be read/);
+    expect(() => unpackExport(zipSync({ 'data.json': strToU8('{"format":"something-else"}') }))).toThrow(/not a Pinyin Chart backup/);
     expect(() => unpackExport(zipSync({ 'data.json': strToU8(JSON.stringify({ format: EXPORT_FORMAT, version: 99 })) }))).toThrow(/newer version/);
   });
 

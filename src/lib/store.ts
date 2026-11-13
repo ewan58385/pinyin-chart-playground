@@ -16,6 +16,7 @@ import {
 import type { FinalGroup, FinalType } from '../data/finals';
 import type { Difficulty } from '../data/initials';
 import * as db from './db';
+import { APPEARANCE_CACHE_KEY } from './theme';
 import type { LearnStatus, Override, RecordingMeta, ToneNote } from './db';
 
 // ───────────────────────── settings ─────────────────────────
@@ -36,9 +37,6 @@ export interface Settings {
   pitchMode: 'relative' | 'hz';
   // Appearance (src/data/themes.ts, applied by src/lib/theme.ts)
   preset: string;
-  /** A curated accent id, or 'custom' with customAccent as a hex colour. */
-  accent: string;
-  customAccent: string;
   typeface: string;
   cjk: 'serif' | 'sans';
   /** 0–3, see TEXT_SIZES. */
@@ -67,8 +65,6 @@ export const DEFAULT_SETTINGS: Settings = {
   showPitch: true,
   pitchMode: 'relative',
   preset: 'paper',
-  accent: 'vermilion',
-  customAccent: '#b0372a',
   typeface: 'source',
   cjk: 'serif',
   textSize: 1,
@@ -134,13 +130,33 @@ export async function loadUserData(): Promise<void> {
   overrides.value = byKey(ov, 'cell');
   recordings.value = rec.sort((a, b) => a.createdAt - b.createdAt);
   settings.value = settingsFrom(se);
+  // Rows left by removed settings (an old accent choice, for example) are ignored above and deleted here.
+  for (const r of se) if (!(r.name in DEFAULT_SETTINGS)) void db.remove('settings', r.name).catch(() => {});
   memoryOnly.value = db.usingMemoryFallback;
   ready.value = true;
 }
 
+/**
+ * "Reset app": delete everything the user has added on this device (statuses,
+ * and with them Learn progress; notes; recordings; edited characters;
+ * settings) and reload the in-memory state, so the app is back to its first
+ * run. The downloaded native recordings are not user data and are kept.
+ */
+export async function resetAllData(): Promise<void> {
+  await db.clearAll();
+  try {
+    localStorage.removeItem(APPEARANCE_CACHE_KEY);
+  } catch {
+    /* no localStorage: nothing cached */
+  }
+  filters.value = { ...EMPTY_FILTERS };
+  filtersOpen.value = false;
+  await loadUserData();
+}
+
 /** Report whether storage is already persistent. Never prompts. */
 export async function checkPersistence(): Promise<void> {
-  const storage = navigator.storage;
+  const storage = typeof navigator === 'undefined' ? undefined : navigator.storage;
   if (!storage?.persist) {
     persistence.value = { supported: false, granted: null };
     return;
@@ -171,7 +187,7 @@ let asked = false;
  * from the "Ask again" button on the My data page.
  */
 export async function requestPersistence(force = false): Promise<void> {
-  const storage = navigator.storage;
+  const storage = typeof navigator === 'undefined' ? undefined : navigator.storage;
   if (!storage?.persist || (asked && !force) || persistence.value.granted) return;
   asked = true;
   try {

@@ -4,17 +4,18 @@
   flex: none;
   display: flex;
   flex-direction: column;
-  width: 184px;
+  width: 156px;
   overflow-y: auto;
   padding: 14px 10px 0 calc(14px + env(safe-area-inset-left));
   border-right: 1px solid var(--rule-strong);
   background: var(--sunken);
   font-size: 14px;
 }
-/* "Whole chart" spans the panel, with the same 14px from the edge on both sides. */
+/* "Chart" spans the panel; icon and word are centred, so the space on either side is the same. */
 .block-nav .bn-chart {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   margin: 0 -10px 12px calc(-14px - env(safe-area-inset-left));
   padding: 2px 14px 12px calc(14px + env(safe-area-inset-left));
@@ -382,8 +383,38 @@ button.tone-btn:hover {
   box-shadow: inset 0 0 0 1px var(--accent);
 }
 .card-legend {
-  margin-top: 10px;
+  margin-top: 16px;
   max-width: 72ch;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.legend-key {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr));
+  gap: 6px 18px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.legend-key li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.tone-btn.key-box {
+  flex: none;
+  width: 24px;
+  height: 26px;
+  min-width: 24px;
+  min-height: 0;
+  padding: 0;
+}
+.tone-btn.key-box .han {
+  font-family: var(--font-serif);
+  font-size: 13px;
+  line-height: 1;
 }
 @media (pointer: coarse) {
   /* Five 44px boxes and their gaps must fit, so cards are wider on touch screens. */

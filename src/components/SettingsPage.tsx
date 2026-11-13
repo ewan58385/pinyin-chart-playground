@@ -1,8 +1,5 @@
-import { useState } from 'preact/hooks';
-import { ACCENTS, CJK_FACES, PRESETS, TEXT_SIZES, TYPEFACES } from '../data/themes';
+import { CJK_FACES, PRESETS, TEXT_SIZES, TYPEFACES } from '../data/themes';
 import { setSetting, settings, type Settings } from '../lib/store';
-import { AA_TEXT, contrast, parseHex } from '../lib/contrast';
-import { resolveAppearance } from '../lib/theme';
 import { Check } from './icons';
 
 function Seg<K extends keyof Settings>({ name, options, label }: { name: K; options: { value: Settings[K]; label: string; hint?: string }[]; label: string }) {
@@ -39,67 +36,12 @@ function Toggle({ name, label, hint }: { name: keyof Settings; label: string; hi
   );
 }
 
-function CustomAccent() {
-  const s = settings.value;
-  const [text, setText] = useState(s.customAccent);
-  const valid = parseHex(text) && /^#?[0-9a-f]{6}$/i.test(text.trim());
-  const hex = valid ? (text.trim().startsWith('#') ? text.trim() : `#${text.trim()}`) : s.customAccent;
-  const resolved = resolveAppearance({ ...s, accent: 'custom', customAccent: hex });
-  const used = resolved.vars['--accent'];
-  const paper = resolved.vars['--paper'];
-  const ratio = contrast(hex, paper);
-  const adjusted = used.toLowerCase() !== hex.toLowerCase();
-  return (
-    <div class="set-row custom-accent">
-      <span class="set-label">
-        Custom accent
-        <small>A hex colour. It is checked against the paper and moved lighter or darker until it reads at AA (4.5:1).</small>
-      </span>
-      <div class="custom-accent-fields">
-        <input
-          class="field"
-          type="text"
-          value={text}
-          maxLength={7}
-          placeholder="#b0372a"
-          autocapitalize="off"
-          spellcheck={false}
-          aria-label="Custom accent colour, hex"
-          onInput={(e) => setText((e.target as HTMLInputElement).value)}
-          onChange={() => {
-            if (!valid) return;
-            setSetting('customAccent', hex);
-            setSetting('accent', 'custom');
-          }}
-        />
-        <span class="swatch-big" style={{ background: used }} aria-hidden="true" />
-        <span class="hint small">
-          {valid
-            ? `${ratio.toFixed(1)}:1 on this paper${adjusted ? `; shown as ${used} to reach ${AA_TEXT}:1` : ratio >= AA_TEXT ? ', passes AA' : ''}`
-            : 'Enter six hex digits, e.g. #2f6b35.'}
-        </span>
-        <button
-          type="button"
-          class={`btn${s.accent === 'custom' ? ' primary' : ''}`}
-          disabled={!valid}
-          onClick={() => {
-            setSetting('customAccent', hex);
-            setSetting('accent', 'custom');
-          }}
-        >
-          {s.accent === 'custom' ? 'In use' : 'Use it'}
-        </button>
-      </div>
-    </div>
-  );
-}
-
 export function SettingsPage() {
   const s = settings.value;
   return (
     <article class="page settings">
       <h1>Settings</h1>
-      <p class="lede">Everything here is kept with your data, included in exports, and applied before the page is drawn, so there is no flash.</p>
+      <p class="lede">Your settings are saved on this device and included in your backups.</p>
 
       <section>
         <h2>Colours</h2>
@@ -132,30 +74,13 @@ export function SettingsPage() {
             })}
           </div>
         </div>
-        <div class="set-row">
-          <span class="set-label" id="set-accent">
-            Accent
-          </span>
-          <div class="accents" role="radiogroup" aria-labelledby="set-accent">
-            {ACCENTS.map((a) => {
-              const dark = s.theme === 'dark' || (s.theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
-              return (
-                <button type="button" role="radio" aria-checked={s.accent === a.id} class="accent-swatch" aria-label={a.label} title={a.label} onClick={() => setSetting('accent', a.id)}>
-                  <i style={{ background: a[dark ? 'dark' : 'light'].accent }} />
-                  {s.accent === a.id && <Check size={13} aria-hidden="true" />}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        <CustomAccent />
         <Seg
           name="toneColours"
           label="Tone colours"
           options={[
             { value: 'off', label: 'Off' },
             { value: 'standard', label: 'Standard' },
-            { value: 'safe', label: 'Colour-blind safe', hint: 'Blue, green, purple and orange from the Okabe–Ito set' },
+            { value: 'safe', label: 'Colour-blind safe', hint: 'Blue, green, purple and orange, easy to tell apart with colour blindness' },
           ]}
         />
         {s.toneColours !== 'off' && (
@@ -222,26 +147,26 @@ export function SettingsPage() {
         />
         <Seg
           name="density"
-          label="Cell detail"
+          label="Detail in each square"
           options={[
             { value: 'auto', label: 'Automatic', hint: 'One character on narrow screens, every tone on wide ones' },
             { value: 'compact', label: 'One character' },
             { value: 'full', label: 'Every tone' },
           ]}
         />
-        <Toggle name="showCharacters" label="Show example characters" hint="Off: pinyin and tone marks only" />
+        <Toggle name="showCharacters" label="Show example characters" hint="When off, the chart shows pinyin and tone marks only" />
         <Toggle name="toneNumbers" label="Tones as numbers" hint="ma1 instead of mā" />
         <Seg
           name="cellBorders"
-          label="Cell borders"
+          label="Square borders"
           options={[
             { value: 'hairline', label: 'Hairline' },
             { value: 'ruled', label: 'Ruled' },
             { value: 'none', label: 'None' },
           ]}
         />
-        <Toggle name="heatmap" label="Colour cells by status" />
-        <Toggle name="showUnverified" label="Show unverified cells" hint="Syllables and tones that only one source attests" />
+        <Toggle name="heatmap" label="Colour squares by status" />
+        <Toggle name="showUnverified" label="Show rare syllables" hint="A few syllables and tones you are unlikely to meet in everyday Mandarin" />
       </section>
 
       <section>

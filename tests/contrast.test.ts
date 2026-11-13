@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { ACCENTS, PRESETS, TONE_PALETTES, type Mode } from '../src/data/themes';
-import { AA_LARGE, AA_TEXT, contrast, ensureContrast, mix, parseHex } from '../src/lib/contrast';
+import { PRESETS, TONE_PALETTES, type Mode } from '../src/data/themes';
+import { AA_TEXT, contrast, mix, parseHex } from '../src/lib/contrast';
 import { deriveAccent } from '../src/lib/theme';
 
 const modes: Mode[] = ['light', 'dark'];
@@ -12,10 +12,8 @@ describe('contrast arithmetic', () => {
     expect(parseHex('#abc')).toEqual({ r: 170, g: 187, b: 204 });
     expect(parseHex('nope')).toBeNull();
   });
-  it('moves a colour until it passes, keeping its hue', () => {
-    const fixed = ensureContrast('#ff9999', '#ffffff')!;
-    expect(contrast(fixed, '#ffffff')).toBeGreaterThanOrEqual(AA_TEXT);
-    expect(ensureContrast('#1d1b18', '#f7f4ee')).toBe('#1d1b18');
+  it('mixes colours', () => {
+    expect(mix('#000000', '#ffffff', 0.5)).toBe('#808080');
   });
 });
 
@@ -41,14 +39,12 @@ describe('every preset meets WCAG AA in both modes', () => {
         expect(contrast(pal.solid, pal.paper)).toBeGreaterThanOrEqual(AA_TEXT);
         expect(contrast(pal.ruleStrong, pal.paper)).toBeGreaterThanOrEqual(1.6);
       });
-      it(`${preset.label}, ${mode}: every curated accent works as text and as a button`, () => {
-        for (const a of ACCENTS) {
-          const d = deriveAccent(a[mode].accent, a[mode].strong, pal);
-          for (const bg of backgrounds) expect(contrast(d.accent, bg), `${a.id} accent on ${bg}`).toBeGreaterThanOrEqual(AA_TEXT);
-          expect(contrast(d.strong, pal.paper), `${a.id} strong`).toBeGreaterThanOrEqual(AA_TEXT);
-          expect(contrast(d.onAccent, d.accent), `${a.id} on-accent`).toBeGreaterThanOrEqual(AA_TEXT);
-          expect(contrast(pal.ink, d.wash), `${a.id} ink on wash`).toBeGreaterThanOrEqual(AA_TEXT);
-        }
+      it(`${preset.label}, ${mode}: the vermilion accent works as text and as a button`, () => {
+        const d = deriveAccent(mode, pal);
+        for (const bg of backgrounds) expect(contrast(d.accent, bg), `accent on ${bg}`).toBeGreaterThanOrEqual(AA_TEXT);
+        expect(contrast(d.strong, pal.paper), 'strong').toBeGreaterThanOrEqual(AA_TEXT);
+        expect(contrast(d.onAccent, d.accent), 'on-accent').toBeGreaterThanOrEqual(AA_TEXT);
+        expect(contrast(pal.ink, d.wash), 'ink on wash').toBeGreaterThanOrEqual(AA_TEXT);
       });
       it(`${preset.label}, ${mode}: tone colours are readable`, () => {
         for (const set of ['standard', 'safe'] as const) {
@@ -60,13 +56,4 @@ describe('every preset meets WCAG AA in both modes', () => {
       });
     }
   }
-  it('a custom accent is adjusted until it passes against the paper', () => {
-    for (const preset of PRESETS)
-      for (const mode of modes) {
-        const d = deriveAccent('#ffcc00', null, preset[mode]);
-        expect(contrast(d.accent, preset[mode].paper)).toBeGreaterThanOrEqual(AA_TEXT);
-        expect(contrast(d.onAccent, d.accent)).toBeGreaterThanOrEqual(AA_LARGE);
-      }
-    expect(mix('#000000', '#ffffff', 0.5)).toBe('#808080');
-  });
 });

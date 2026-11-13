@@ -10,7 +10,7 @@ import { SettingsPage } from './components/SettingsPage';
 import { FinalsOverview, InitialsOverview } from './components/OverviewPages';
 import { BrowsePage } from './components/BrowsePage';
 import { LearnPage } from './components/LearnPage';
-import { hasPanel } from './lib/routes';
+import { crumbsFor, hasPanel } from './lib/routes';
 
 import { AboutPage } from './components/AboutPage';
 import { route } from './lib/router';
@@ -21,6 +21,13 @@ export function App() {
   const page = route.value.page;
   const s = settings.value;
 
+  // The tab title follows the page (and the open syllable): "zhi · E group · Pinyin Chart".
+  useEffect(() => {
+    const trail = crumbsFor(route.value);
+    const here = trail.length > 1 ? trail[trail.length - 1].label : '';
+    document.title = [route.value.syllable, here, 'Pinyin Chart'].filter(Boolean).join(' · ');
+  }, [route.value]);
+
   // Every appearance setting is written to <html> (tokens and attributes) and cached for the next first paint.
   useEffect(() => {
     if (!ready.value) return;
@@ -29,19 +36,19 @@ export function App() {
     const onChange = () => applyAppearance(settings.value);
     mq.addEventListener('change', onChange);
     return () => mq.removeEventListener('change', onChange);
-  }, [ready.value, s.theme, s.preset, s.accent, s.customAccent, s.typeface, s.cjk, s.textSize, s.spacing, s.toneColours, s.cellBorders, s.reduceMotion]);
+  }, [ready.value, s.theme, s.preset, s.typeface, s.cjk, s.textSize, s.spacing, s.toneColours, s.cellBorders, s.reduceMotion]);
 
   return (
     <div class="app">
       <TopBar />
       {memoryOnly.value && (
         <div class="banner" role="status">
-          This browser is not letting the app store data (private browsing?). Notes and recordings will be lost when you close the tab.
+          This browser is not letting the app save anything (private browsing?), so your notes and recordings will be lost when you close the tab.
         </div>
       )}
       {!online.value && page === 'chart' && (
         <div class="banner" role="status">
-          Offline. Clips you have played or downloaded still work; the rest will be silent until you are back online.
+          You are offline. Recordings you have already played or downloaded still work; the others will play when you are back online.
         </div>
       )}
       {page === 'chart' && filtersOpen.value && <FilterBar />}

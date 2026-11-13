@@ -14,9 +14,14 @@ describe('stored settings', () => {
   it('ignores settings left behind by removed features, and values of the wrong type', () => {
     const s = settingsFrom([
       { name: 'voice', value: 'someone' },
+      { name: 'accent', value: 'teal' },
+      { name: 'customAccent', value: '#ffcc00' },
       { name: 'rate', value: 'fast' },
     ]) as unknown as Record<string, unknown>;
     expect('voice' in s).toBe(false);
+    // The accent is fixed now: an old accent choice is ignored.
+    expect('accent' in s).toBe(false);
+    expect('customAccent' in s).toBe(false);
     expect(s.rate).toBe(DEFAULT_SETTINGS.rate);
   });
 });

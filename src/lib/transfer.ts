@@ -69,18 +69,18 @@ export function unpackExport(zip: Uint8Array): ExportBundle {
   try {
     files = unzipSync(zip);
   } catch {
-    throw new Error('That file is not a zip archive.');
+    throw new Error('That file is not a Pinyin Chart backup.');
   }
   const raw = files['data.json'];
-  if (!raw) throw new Error('That zip has no data.json in it, so it is not a Pinyin Chart export.');
+  if (!raw) throw new Error('That file is not a Pinyin Chart backup.');
   let data: ExportData;
   try {
     data = JSON.parse(strFromU8(raw));
   } catch {
-    throw new Error('data.json in that zip could not be read.');
+    throw new Error('That backup could not be read. It may be damaged.');
   }
-  if (data.format !== EXPORT_FORMAT) throw new Error('That zip is not a Pinyin Chart export.');
-  if (data.version > EXPORT_VERSION) throw new Error('That export was made by a newer version of the app. Update this copy first.');
+  if (data.format !== EXPORT_FORMAT) throw new Error('That file is not a Pinyin Chart backup.');
+  if (data.version > EXPORT_VERSION) throw new Error('That backup was made by a newer version of the app. Reload the app to update it, then try again.');
   const audio: Record<string, Uint8Array> = {};
   for (const rec of data.recordings ?? []) {
     const bytes = files[rec.file];

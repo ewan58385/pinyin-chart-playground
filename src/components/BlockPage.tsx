@@ -54,9 +54,9 @@ export function BlockNav({ current }: { current?: Block }) {
   );
   return (
     <nav class={`block-nav${collapsed ? ' collapsed' : ''}`} aria-label="Finals and initials">
-      <a class="bn-chart" href="#/" aria-label="Whole chart: back to the main chart" title={collapsed ? 'Whole chart' : undefined}>
+      <a class="bn-chart" href="#/" aria-label="Chart" title={collapsed ? 'Chart' : undefined}>
         <ChartIcon size={18} aria-hidden="true" />
-        <span>Whole chart</span>
+        <span>Chart</span>
       </a>
       <div class="bn-groups" id="bn-groups">
         {group('finals', 'Finals')}

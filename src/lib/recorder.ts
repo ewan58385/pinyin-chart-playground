@@ -15,9 +15,9 @@ export const MAX_RECORDING_MS = 10_000;
 const PREFERRED_TYPES = ['audio/mp4;codecs=mp4a.40.2', 'audio/mp4', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus'];
 
 export function recordingUnavailableReason(): string | null {
-  if (!window.isSecureContext) return 'Recording needs a secure (https) connection.';
+  if (!window.isSecureContext) return 'Recording only works when the app is opened over a secure (https) connection.';
   if (!navigator.mediaDevices?.getUserMedia) return 'This browser does not give web pages access to the microphone.';
-  if (typeof MediaRecorder === 'undefined') return 'This browser cannot record audio (no MediaRecorder).';
+  if (typeof MediaRecorder === 'undefined') return 'This browser cannot record audio.';
   return null;
 }
 
@@ -38,7 +38,7 @@ function describeError(err: unknown): string {
   }
   if (name === 'NotFoundError' || name === 'OverconstrainedError') return 'No microphone was found on this device.';
   if (name === 'NotReadableError') return 'The microphone is in use by another app.';
-  return `Could not start recording: ${(err as Error)?.message ?? 'unknown error'}`;
+  return `Recording could not start: ${(err as Error)?.message ?? 'the browser gave no reason'}.`;
 }
 
 export interface RecordingResult {

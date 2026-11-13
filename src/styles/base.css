@@ -307,31 +307,44 @@ textarea.field {
   color: var(--ink-3);
 }
 
-/* Segmented control: joined hairline boxes, not pills. */
+/* Segmented control: joined hairline boxes, not pills. Every option gets an
+   equal share of the control and a hairline before it, so no option (the last
+   included) ever looks as if it runs to the edge. The selected option is a
+   filled box inset within its own segment. */
 .seg {
-  display: inline-flex;
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
   border: 1px solid var(--rule-strong);
   border-radius: var(--radius);
+  background: var(--surface);
   overflow: hidden;
 }
 .seg button {
+  min-width: 0;
   min-height: 34px;
-  padding: 0 12px;
+  padding: 4px 12px;
   font-size: 13.5px;
   font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
   color: var(--ink-2);
   border-left: 1px solid var(--rule-strong);
 }
 .seg button:first-child {
   border-left: 0;
 }
+.seg button:hover {
+  color: var(--ink);
+}
 .seg button[aria-pressed='true'],
 .seg button[aria-checked='true'] {
   background: var(--ink);
   color: var(--paper);
+  box-shadow: inset 0 0 0 2px var(--surface);
 }
 .seg button:focus-visible {
-  outline-offset: -3px;
+  outline-offset: -4px;
 }
 @media (pointer: coarse) {
   .seg button {

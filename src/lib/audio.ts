@@ -227,7 +227,7 @@ function playOne(item: PlayItem, blob: Blob, rate: number, mySession: number): P
       resolve();
     };
     a.onended = finish;
-    a.onerror = () => reject(new Error('This audio format cannot be played in this browser.'));
+    a.onerror = () => reject(new Error('This recording cannot be played in this browser.'));
     a.src = currentUrl;
     a.defaultPlaybackRate = rate;
     a.playbackRate = rate;
@@ -276,7 +276,7 @@ export async function play(items: PlayItem[], opts: { rate?: number; loop?: bool
     if (mySession !== session) return;
     const ready = items.map((item, i) => ({ item, blob: blobs[i] })).filter((x): x is { item: PlayItem; blob: Blob } => !!x.blob);
     if (!ready.length) {
-      playError.value = navigator.onLine === false ? 'This clip has not been downloaded for offline use yet.' : 'No audio available.';
+      playError.value = navigator.onLine === false ? 'This recording has not been downloaded for offline use yet.' : 'No recording.';
       return;
     }
     do {
@@ -292,7 +292,7 @@ export async function play(items: PlayItem[], opts: { rate?: number; loop?: bool
     if (mySession !== session) return;
     const e = err as Error;
     playError.value =
-      e.name === 'NotAllowedError' ? 'The browser blocked playback. Tap the play button again.' : e.message || 'Playback failed.';
+      e.name === 'NotAllowedError' ? 'The browser blocked playback. Tap the play button again.' : e.message || 'The recording could not be played.';
   } finally {
     if (mySession === session) {
       release();

@@ -99,9 +99,9 @@ describe('categories', () => {
     expect(front + back).toBe(categorySyllables(CATEGORY_BY_ID.nasal).length);
   });
 
-  it('carries the notes on the judgement calls in the data', () => {
-    expect(CATEGORY_BY_ID.easy.note).toMatch(/s both as/);
-    expect(CATEGORY_BY_ID.compound.note).toMatch(/er is a rhotic final/);
+  it('carries the notes on the less clear-cut groupings', () => {
+    expect(CATEGORY_BY_ID.easy.note).toMatch(/keep it apart from sh and x/);
+    expect(CATEGORY_BY_ID.compound.note).toMatch(/er is a sound of its own/);
     expect(categorySyllables(CATEGORY_BY_ID.easy).some((s) => s.initial === 's')).toBe(true);
     expect(categorySyllables(CATEGORY_BY_ID.compound).some((s) => s.id === 'er')).toBe(true);
     expect(CATEGORY_BY_ID.nasal.note).toBeUndefined();

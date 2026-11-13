@@ -130,7 +130,7 @@ export const firstCellOf = (syllable: string): string => SYLLABLE_BY_ID[syllable
 
 export class StorageFullError extends Error {
   constructor() {
-    super('Storage is full. Delete some recordings, or export your data and clear old takes.');
+    super('Storage is full. Delete some of your recordings, or export a backup and then remove old ones.');
     this.name = 'StorageFullError';
   }
 }
@@ -233,6 +233,14 @@ export async function clearStore(store: StoreName): Promise<void> {
     return;
   }
   await db.clear(store);
+}
+
+/**
+ * Empty every store of user data (the stores themselves stay). Used by
+ * "Reset app". Works on the in-memory fallback too.
+ */
+export async function clearAll(): Promise<void> {
+  for (const store of STORES) await clearStore(store);
 }
 
 /** Write a recording's metadata and audio together, so one never exists without the other. */

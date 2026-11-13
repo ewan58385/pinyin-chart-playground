@@ -162,3 +162,39 @@
   font-size: 16px;
   font-weight: 600;
 }
+
+/* ── Destructive actions: the accent as outline, filled only on hover ── */
+.btn.danger {
+  border-color: var(--accent);
+  background: var(--surface);
+  color: var(--accent);
+}
+.btn.danger:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* ── Reset app: set apart at the foot of My data ── */
+.page section.reset {
+  margin-top: 56px;
+}
+.page .reset h2 {
+  border-bottom-color: var(--accent);
+}
+.reset-confirm {
+  margin-top: 12px;
+}
+.reset-confirm p + p {
+  margin-top: 4px;
+}
+.reset-confirm .actions {
+  margin-top: 10px;
+}
+.reset-confirm:focus-visible,
+.page h1:focus-visible {
+  outline: var(--focus);
+  outline-offset: 3px;
+}
+.page h1:focus:not(:focus-visible) {
+  outline: none;
+}

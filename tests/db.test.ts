@@ -118,4 +118,29 @@ describe('IndexedDB schema upgrade', () => {
     expect(await applyImport(bytes, false)).toEqual({ status: 0, notes: 0, overrides: 0, settings: 0, recordings: 0, skippedRecordings: 1 });
     expect(await snapshot()).toEqual(before);
   });
+  it('"Reset app" empties every store and the in-memory state, back to the first run', async () => {
+    const db = await import('../src/lib/db');
+    const store = await import('../src/lib/store');
+    await db.put('status', { cell: 'ma1', status: 'solid', updatedAt: 30 });
+    await db.put('toneNotes', { cell: 'ma1', note: 'high and level', updatedAt: 30 });
+    await db.put('settings', { name: 'theme', value: 'dark', updatedAt: 30 });
+    await store.loadUserData();
+    expect(store.statuses.value.ma1).toBe('solid');
+    expect(store.settings.value.theme).toBe('dark');
+    store.filters.value = { ...store.EMPTY_FILTERS, statuses: ['shaky'] };
+
+    await store.resetAllData();
+
+    for (const name of db.STORES) expect(await db.getAll(name), name).toEqual([]);
+    expect(store.statuses.value).toEqual({});
+    expect(store.toneNotes.value).toEqual({});
+    expect(store.overrides.value).toEqual({});
+    expect(store.recordings.value).toEqual([]);
+    expect(store.settings.value).toEqual(store.DEFAULT_SETTINGS);
+    expect(store.filters.value).toEqual(store.EMPTY_FILTERS);
+    // The app keeps working afterwards.
+    store.setStatus('ba1', 'shaky');
+    await new Promise((r) => setTimeout(r, 20));
+    expect(await db.getOne('status', 'ba1')).toMatchObject({ status: 'shaky' });
+  });
 });

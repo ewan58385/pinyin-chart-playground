@@ -3,7 +3,6 @@ import { route, openSyllable, type Page } from '../lib/router';
 import { filtersActive, filtersOpen, resolveExample, setSetting, settings, type Settings } from '../lib/store';
 import { search, loadCharIndex, type SearchHit } from '../lib/search';
 import { toneMark } from '../lib/pinyin';
-import { SYLLABLES } from '../data';
 import { Search as SearchIcon, FiltersIcon, Flip, More, Density, Sun, Moon, Monitor, Eye, EyeOff, Check, ChartIcon, FinalsIcon, InitialsIcon, LearnIcon, Database } from './icons';
 
 interface NavItem {
@@ -60,7 +59,7 @@ function hitLabel(h: SearchHit) {
   return {
     py: h.tone ? toneMark(h.syllable.id, h.tone) : h.syllable.id,
     han: h.via ?? ex?.character ?? '',
-    gloss: own ? (ex?.meaning ?? '') : ex?.character ? `filed with ${ex.character}` : '',
+    gloss: own ? (ex?.meaning ?? '') : ex?.character ? `example: ${ex.character}` : '',
   };
 }
 
@@ -178,7 +177,6 @@ function Menu({ onClose }: { onClose: () => void }) {
       document.removeEventListener('keydown', onKey);
     };
   }, []);
-  const hidden = SYLLABLES.reduce((n, syl) => n + syl.tones.filter((t) => t.status === 'single-source').length, 0);
   const ThemeIcon = s.theme === 'dark' ? Moon : s.theme === 'light' ? Sun : Monitor;
   // On phones: whatever of the main navigation is not in the tab bar.
   const inTabs = new Set(TABS.map((t) => t.page));
@@ -202,7 +200,7 @@ function Menu({ onClose }: { onClose: () => void }) {
       <hr />
       <button type="button" class="menu-item" role="menuitem" onClick={() => setSetting('density', next(['auto', 'compact', 'full'], s.density))}>
         <Density size={17} aria-hidden="true" />
-        Cell detail
+        Detail in each square
         <span class="state">{DENSITY_LABEL[s.density]}</span>
       </button>
       <button type="button" class="menu-item" role="menuitemcheckbox" aria-checked={s.heatmap} onClick={() => setSetting('heatmap', !s.heatmap)}>
@@ -218,7 +216,7 @@ function Menu({ onClose }: { onClose: () => void }) {
         onClick={() => setSetting('showUnverified', !s.showUnverified)}
       >
         {s.showUnverified ? <Eye size={17} aria-hidden="true" /> : <EyeOff size={17} aria-hidden="true" />}
-        Unverified cells ({hidden})
+        Rare syllables
         <span class="state">{s.showUnverified ? 'Shown' : 'Hidden'}</span>
       </button>
       <button type="button" class="menu-item" role="menuitem" onClick={() => setSetting('theme', next(['system', 'light', 'dark'], s.theme))}>

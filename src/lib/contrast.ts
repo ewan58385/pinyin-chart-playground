@@ -1,6 +1,6 @@
 /**
- * WCAG 2 contrast arithmetic, used by the theme test and by the custom
- * accent colour check in Settings.
+ * WCAG 2 contrast arithmetic, used to derive the accent's companion colours
+ * and by the theme test.
  */
 
 export interface Rgb {
@@ -41,67 +41,6 @@ export function contrast(a: Rgb | string, b: Rgb | string): number {
 }
 
 export const AA_TEXT = 4.5;
-export const AA_LARGE = 3;
-
-// ───────────────────────── HSL helpers, for adjusting a custom accent ─────────────────────────
-
-export interface Hsl {
-  h: number;
-  s: number;
-  l: number;
-}
-
-export function toHsl({ r, g, b }: Rgb): Hsl {
-  const R = r / 255;
-  const G = g / 255;
-  const B = b / 255;
-  const max = Math.max(R, G, B);
-  const min = Math.min(R, G, B);
-  const l = (max + min) / 2;
-  if (max === min) return { h: 0, s: 0, l };
-  const d = max - min;
-  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-  let h = max === R ? (G - B) / d + (G < B ? 6 : 0) : max === G ? (B - R) / d + 2 : (R - G) / d + 4;
-  h /= 6;
-  return { h, s, l };
-}
-
-export function fromHsl({ h, s, l }: Hsl): Rgb {
-  if (s === 0) return { r: l * 255, g: l * 255, b: l * 255 };
-  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-  const p = 2 * l - q;
-  const f = (t: number) => {
-    if (t < 0) t += 1;
-    if (t > 1) t -= 1;
-    if (t < 1 / 6) return p + (q - p) * 6 * t;
-    if (t < 1 / 2) return q;
-    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-    return p;
-  };
-  return { r: f(h + 1 / 3) * 255, g: f(h) * 255, b: f(h - 1 / 3) * 255 };
-}
-
-/**
- * The nearest shade of `hex` (same hue and saturation, lightness moved) that
- * reaches `ratio` against `background`. Returns the colour unchanged when it
- * already passes, and null when no lightness does.
- */
-export function ensureContrast(hex: string, background: string, ratio = AA_TEXT): string | null {
-  const c = parseHex(hex);
-  const bg = parseHex(background);
-  if (!c || !bg) return null;
-  if (contrast(c, bg) >= ratio) return toHex(c);
-  const hsl = toHsl(c);
-  const darkBg = luminance(bg) < 0.5;
-  // Move away from the background's lightness in steps.
-  for (let step = 1; step <= 40; step++) {
-    const l = darkBg ? hsl.l + step * 0.02 : hsl.l - step * 0.02;
-    if (l < 0 || l > 1) break;
-    const candidate = fromHsl({ ...hsl, l });
-    if (contrast(candidate, bg) >= ratio) return toHex(candidate);
-  }
-  return null;
-}
 
 /** Mix two colours; t = 0 gives a, t = 1 gives b. */
 export function mix(a: string, b: string, t: number): string {

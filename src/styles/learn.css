@@ -33,14 +33,40 @@ a.btn.primary {
 .ov-list li {
   display: grid;
   grid-template-columns: minmax(92px, 130px) 1fr auto;
-  gap: 4px 14px;
+  gap: 6px 18px;
   align-items: center;
-  padding: 7px 0;
+  padding: 12px 4px;
   border-bottom: 1px solid var(--rule);
+  line-height: 1.5;
+}
+/* Groups and categories: each one a padded card, with room between them. */
+.ov-list.wide {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
 }
 .ov-list.wide li {
-  grid-template-columns: minmax(180px, 1.2fr) minmax(0, 2fr) auto;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) auto;
+  gap: 14px 28px;
   align-items: start;
+  padding: 18px 20px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.ov-list.wide li > .hint {
+  grid-column: 1 / -1;
+  max-width: 62ch;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.overview .member {
+  margin-top: 40px;
+}
+.overview .member > .hint,
+.overview .member > p {
+  max-width: 62ch;
+  line-height: 1.5;
 }
 .ov-item {
   display: inline-flex;
@@ -79,28 +105,35 @@ a.btn.primary {
 .ov-block {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
 }
 .ov-block small {
   color: var(--ink-2);
-  font-size: 13px;
-  max-width: 46ch;
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 62ch;
+}
+.ov-block .group-progress {
+  align-self: stretch;
+  margin-top: 4px;
 }
 .ov-initials,
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 10px;
   list-style: none;
   margin: 0;
   padding: 0;
 }
 .ov-chip {
   display: inline-flex;
-  align-items: baseline;
-  gap: 6px;
-  min-height: 34px;
-  padding: 3px 10px;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 4px 12px;
   border: 1px solid var(--rule-strong);
   border-radius: var(--radius);
   background: var(--surface);
@@ -132,13 +165,15 @@ a.btn.primary {
 .ov-notes > div {
   display: grid;
   grid-template-columns: minmax(120px, 170px) 1fr;
-  gap: 4px 14px;
-  padding: 7px 0;
+  gap: 6px 18px;
+  padding: 12px 4px;
   border-bottom: 1px solid var(--rule);
 }
 .ov-notes dd {
   color: var(--ink-2);
   font-size: 14px;
+  line-height: 1.5;
+  max-width: 62ch;
 }
 .yw-list {
   display: flex;
@@ -361,7 +396,13 @@ a.btn.primary {
   .ov-list li,
   .ov-list.wide li {
     grid-template-columns: 1fr;
-    gap: 6px;
+    gap: 10px;
+  }
+  .ov-list.wide li {
+    padding: 16px;
+  }
+  .overview .member {
+    margin-top: 32px;
   }
   .ov-notes > div {
     grid-template-columns: 1fr;

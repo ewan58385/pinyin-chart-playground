@@ -77,7 +77,7 @@ export const medianLabel = (r: Pick<PitchResult, 'medianHz'> | undefined) => (r 
  */
 export function explainNoContour(r: PitchResult | null | undefined, decodable = true): string {
   if (!decodable) return 'This recording could not be decoded in this browser, so its pitch cannot be shown. It may have been recorded in a browser that uses a different audio format.';
-  if (!r) return 'The take has not been analysed yet.';
+  if (!r) return 'The recording has not been analysed yet.';
   if (r.clippedFraction > 0.01) return 'The recording is clipped (too loud for the microphone), which hides the pitch. Hold the device a little further away and try again.';
   switch (r.reason) {
     case 'too-quiet':

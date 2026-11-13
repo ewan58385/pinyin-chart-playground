@@ -221,7 +221,7 @@ export function Chart() {
           </th>
           {INITIALS.map((i) => (
             <th scope="col" class={blockStart.has(i.id) ? 'g-start' : ''}>
-              <a class="headlink" href={blockHash(blockOfInitial(i))} aria-label={`${i.id ? i.id : 'no initial'}: open its block page`} title="Open this block's page">
+              <a class="headlink" href={blockHash(blockOfInitial(i))} aria-label={`${i.id ? i.id : 'no initial'}: open its group page`} title="Open this group's page">
                 {i.display}
                 <ChevronRight size={11} aria-hidden="true" />
               </a>
@@ -289,7 +289,7 @@ export function Chart() {
         {INITIALS.map((i, r) => (
           <tr key={i.id} class={blockStart.has(i.id) ? 'b-start' : ''}>
             <th class="rowhead" scope="row">
-              <a class="headlink" href={blockHash(blockOfInitial(i))} aria-label={`${i.id ? i.id : 'no initial'}: open its block page`} title="Open this block's page">
+              <a class="headlink" href={blockHash(blockOfInitial(i))} aria-label={`${i.id ? i.id : 'no initial'}: open its group page`} title="Open this group's page">
                 {i.display}
                 <ChevronRight size={11} aria-hidden="true" />
               </a>

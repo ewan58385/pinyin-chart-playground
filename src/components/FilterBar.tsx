@@ -73,7 +73,7 @@ export function FilterBar() {
           { value: 'problem', label: 'Problem', title: 'j q x, zh ch sh r, z c' },
         ]}
       />
-      <Chips label="Tags" field="tags" options={TAG_OPTIONS.map((t) => ({ value: t.id, label: t.label, title: t.explain }))} />
+      <Chips label="Spelling and sound" field="tags" options={TAG_OPTIONS.map((t) => ({ value: t.id, label: t.label, title: t.explain }))} />
       <div class="filter-summary" aria-live="polite">
         <span>
           {filtersActive.value ? `${count} of ${total} syllables match` : `${total} syllables`}

@@ -1,7 +1,7 @@
 /**
- * Appearance presets, accents and tone palettes. Every colour here is checked
+ * Appearance presets, the accent and tone palettes. Every colour here is checked
  * for WCAG AA contrast by tests/contrast.test.ts: text colours against every
- * background they can sit on, accents as text and as button backgrounds.
+ * background they can sit on, the accent as text and as a button background.
  *
  * The design stays one family: warm or cool off-whites and near-blacks,
  * hairline rules, a single accent. Presets change the paper, not the layout.
@@ -101,27 +101,11 @@ export const PRESETS: Preset[] = [
 ];
 export const PRESET_BY_ID: Record<string, Preset> = Object.fromEntries(PRESETS.map((x) => [x.id, x]));
 
-export interface AccentPair {
-  accent: string;
-  strong: string;
-}
-export interface Accent {
-  id: string;
-  label: string;
-  light: AccentPair;
-  dark: AccentPair;
-}
-/** Curated accents; the wash and on-accent colours are derived from these and the paper. */
-export const ACCENTS: Accent[] = [
-  { id: 'vermilion', label: 'Vermilion', light: { accent: '#b0372a', strong: '#8d2a20' }, dark: { accent: '#e27365', strong: '#f09284' } },
-  { id: 'ochre', label: 'Ochre', light: { accent: '#8a5a07', strong: '#6c4604' }, dark: { accent: '#dfae4a', strong: '#ecc46e' } },
-  { id: 'forest', label: 'Forest', light: { accent: '#2f6b35', strong: '#235228' }, dark: { accent: '#8cc48a', strong: '#a8d6a5' } },
-  { id: 'teal', label: 'Teal', light: { accent: '#1c6b6b', strong: '#145252' }, dark: { accent: '#73c3c0', strong: '#95d6d3' } },
-  { id: 'indigo', label: 'Indigo', light: { accent: '#3b4fa8', strong: '#2d3c84' }, dark: { accent: '#9aa9ee', strong: '#b6c1f4' } },
-  { id: 'plum', label: 'Plum', light: { accent: '#8a3a6e', strong: '#6c2c55' }, dark: { accent: '#dd9ac6', strong: '#e9b6d7' } },
-  { id: 'slate', label: 'Slate blue', light: { accent: '#4a6180', strong: '#384b64' }, dark: { accent: '#9db4cf', strong: '#b8cadf' } },
-];
-export const ACCENT_BY_ID: Record<string, Accent> = Object.fromEntries(ACCENTS.map((x) => [x.id, x]));
+/** The one accent, vermilion, per mode. The wash and on-accent colours are derived from it and the paper. */
+export const ACCENT: Record<Mode, { accent: string; strong: string }> = {
+  light: { accent: '#b0372a', strong: '#8d2a20' },
+  dark: { accent: '#e27365', strong: '#f09284' },
+};
 
 export type ToneColourSet = 'off' | 'standard' | 'safe';
 /** Five tone colours per mode: 1, 2, 3, 4 and neutral. */

@@ -154,8 +154,7 @@ export function StageMap({ stage, index }: { stage: Stage; index: number }) {
         </svg>
       </div>
       <figcaption class="hint small">
-        Where this stage sits on the chart. Columns are the 36 finals in their six groups; rows are the initials. Rows with nothing in this stage are folded
-        into thin bands.
+        Where this stage’s syllables sit on the chart. Rows with none of them are folded into thin bands.
       </figcaption>
     </figure>
   );

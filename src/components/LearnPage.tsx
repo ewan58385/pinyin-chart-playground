@@ -1,5 +1,5 @@
 /**
- * Learn is the path: stages from the sounds the data labels simplest to the
+ * Learn is the path: stages from the easiest sounds to the
  * hardest, what each covers and why, a picture of where its syllables sit on
  * the chart, its syllables to listen to and mark, and progress read from the
  * user's own statuses. Nothing is locked.
@@ -41,8 +41,8 @@ function LearnIndex() {
         <header class="block-head">
           <h1>Learn</h1>
           <p class="lede">
-            Stages run from the sounds the chart data labels simplest to the ones it labels hardest. Progress comes from the new / shaky / solid marks you
-            set on each tone; nothing is locked.
+            Nine stages, from the easiest sounds to the hardest. Your progress comes from the new, shaky and solid marks you set on each tone. Nothing is
+            locked: start anywhere.
           </p>
         </header>
 
@@ -101,8 +101,8 @@ function LearnIndex() {
             ))}
           </ol>
           <p class="hint small">
-            A stage counts as mostly solid when four fifths of its tones are marked solid. The order follows the labels in the data: simple, compound and
-            nasal finals; easy, tougher and problem initials. It is a recommendation, not a lock.
+            A stage counts as mostly solid when four in five of its tones are marked solid. The order goes from single vowels to compound and nasal finals,
+            and from easy initials to the tricky ones. It is a suggestion, not a rule.
           </p>
         </section>
       </article>

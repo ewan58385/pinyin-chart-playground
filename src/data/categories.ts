@@ -8,7 +8,7 @@
 import { SYLLABLES, type Syllable } from './index';
 import { FINAL_BY_ID } from './finals';
 import { INITIALS, INITIAL_BY_ID, type Difficulty } from './initials';
-import { DIFFICULTY_LABEL, TAG_BY_ID } from './tags';
+import { DIFFICULTY_DESCRIPTION, TAG_BY_ID } from './tags';
 
 export type CategoryKind = 'final' | 'spelling' | 'initial';
 
@@ -48,7 +48,7 @@ const byDifficulty = (d: Difficulty): Category => ({
   id: d,
   kind: 'initial',
   label: `${cap(d)} initials`,
-  description: `Initials the data labels “${DIFFICULTY_LABEL[d]}”: ${initialsOf(d).join(', ')}.`,
+  description: `${DIFFICULTY_DESCRIPTION[d]}: ${initialsOf(d).join(', ')}.`,
   ...(unverifiedNote(d) ? { note: unverifiedNote(d) } : {}),
   groupBy: 'initial',
   match: (s) => INITIAL_BY_ID[s.initial].difficulty === d,
@@ -81,9 +81,9 @@ export const CATEGORIES: Category[] = [
 export const CATEGORY_BY_ID: Record<string, Category> = Object.fromEntries(CATEGORIES.map((c) => [c.id, c]));
 
 export const CATEGORY_SECTIONS: { kind: CategoryKind; title: string; blurb: string }[] = [
-  { kind: 'final', title: 'Finals by type', blurb: 'The type each final has in the finals table, and the two kinds of nasal ending.' },
-  { kind: 'spelling', title: 'Spelling that differs from the sound', blurb: 'Syllables carrying one of the spelling tags.' },
-  { kind: 'initial', title: 'Initials by difficulty and articulation', blurb: 'The difficulty group of each initial, and the articulation tags on the rows.' },
+  { kind: 'final', title: 'Finals by type', blurb: 'Single vowels, vowel combinations, and the two nasal endings.' },
+  { kind: 'spelling', title: 'Spelling that differs from the sound', blurb: 'Syllables whose spelling does not tell the whole story.' },
+  { kind: 'initial', title: 'Initials by difficulty and by how they are made', blurb: 'How hard each initial tends to be for English speakers, and where in the mouth it is made.' },
 ];
 
 /** The syllables of a category, in chart order. Hidden single-source syllables are included only when asked for. */
