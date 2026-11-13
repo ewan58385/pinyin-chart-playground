@@ -8,15 +8,14 @@ Offline-first PWA: interactive Mandarin pinyin chart (Vite + TypeScript + Preact
 
 ## State
 
-As of 2026-11-13: `main` = `origin/main` at a366e0c (Round 7). Round 8 (blank deployed site) is done in the working tree, **uncommitted**: startup error boundary, static "starting" notice in index.html, hardened settings parsing and data loading, a post-deploy check in the workflow. Browser checks: `.cache/screenshots/round8/`.
+As of 2026-11-13: `main` = `origin/main` at 556b8a0 (Round 8). Uncommitted in the working tree: Round 9 (My data moved into the ⋯ menu under Settings; four phone tabs; Finals bar spacing) and Round 10 (commercial licensing: SUBTLEX-CH removed, fallback ranking from HSK + Unihan, verified audio source, credits page, THIRD_PARTY_NOTICES.md, open-data/).
 
-**Deployment problem (needs the user):** GitHub Pages' Source is "Deploy from a branch", so every push also runs GitHub's own "pages build and deployment", which publishes the unbuilt repo (index.html → /src/main.tsx, 404 → blank). It races the Actions deploy; at a366e0c it finished 2 s later and won. Fix: Settings → Pages → Source: GitHub Actions, then re-run "Deploy to GitHub Pages". The workflow's `verify` job now fails if the live page is not the build. The user's screenshots (`*.png` in the root) are untracked.
-
-Open questions for the user:
-- The audio set's web address is UNKNOWN (not in the folder or its tags); fill `url` in `scripts/build-audio.ts` if it is known, then rerun `npm run data:audio`.
-- Restore the lesson links and their times that Round 2 removed? Round 3–5 briefs refer to them ("video times", `src/data/video.ts`); none exist.
-- Delete the local `.env` (gitignored) and the cloud speech resource from the removed generated-voices work, if no longer wanted.
-- `toolbar-thin-desktop.png` (the user's screenshot) sits untracked in the project root.
+Open questions for the user (Round 10):
+- Leipzig Corpora Collection: its terms page sits behind an anti-bot challenge, so its licence could not be read from a primary source; not used. If the user confirms its terms permit commercial redistribution of derived data, it could replace the fallback.
+- Audio licence version: the files' metadata says CC-BY-SA-3.0; the audio-cmn README says "CC-by-sa" with no version and there is no LICENSE file.
+- HSK levels: complete-hsk-vocabulary and its upstreams (clem109/hsk-vocabulary ← gigacool/hanyu-shuiping-kaoshi; elkmovie/hsk30) are all MIT, but hsk30 is extracted from an official Ministry of Education document.
+- Publish `open-data/` (with `npm run data:open -- --audio`) and set `OPEN_DATA_URL` in `src/config.ts`. Whether ShareAlike reaches the app code is for a lawyer.
+- Pages Source should be "GitHub Actions" (see Round 8).
 
 ## Commands
 
@@ -27,6 +26,8 @@ BASE_PATH=/pinyin-chart/ npm run build    # sub-path build, as GitHub Pages uses
 npx vitest run tests/pitch.test.ts        # one file;  npx vitest run -t "toneMark"  # by name
 npm run data:sources | data:build | data:audio | data:fonts | data:icons | data:all   # data pipeline (outputs committed)
 npm run data:audio -- --source <folder>   # audio from another local folder (default .cache/sources/audio-cmn/syllabs)
+npm run data:notices                      # credits → notices-packages.json, licence-texts.json, THIRD_PARTY_NOTICES.md
+npm run data:open [-- --audio]            # open-data/ (CC BY-SA material); --audio copies the clips (gitignored)
 npx tsx scripts/diagnose-pitch.ts         # writes reports/pitch-diagnosis.md
 ```
 
@@ -39,7 +40,7 @@ npx tsx scripts/diagnose-pitch.ts         # writes reports/pitch-diagnosis.md
 
 - **Bundled vs user data are strictly separate.** Bundled read-only content (chart data, examples, audio index; generated JSON in `src/data/generated/`) is imported via `src/data/index.ts`. Everything the user creates lives only in IndexedDB (`src/lib/db.ts`, DB `pinyin-chart-user`) and is laid over bundled data at read time (`resolveExample` in `src/lib/store.ts`). Recordings are stored as ArrayBuffer + MIME type (Safari).
 - **Grid:** 22 initials (`src/data/initials.ts`, null initial first) × 36 finals (`src/data/finals.ts`, groups A/E/O/I/U/Ü). `parseSyllable` in `src/lib/pinyin.ts` maps spellings to squares; off-grid syllables are excluded. Tone cell ids are numeric (`ma1`, `lü4`, `de5`); filenames write ü as `v`.
-- **Data is evidence-based.** `scripts/build-data.ts` derives syllables from CC-CEDICT + Unihan; `verified` when ≥2 sources agree. Hand overrides only in `scripts/curation.ts` (reject or reorder only). Never invent linguistic facts; mark uncertainty `verified: false`.
+- **Data is evidence-based.** `scripts/build-data.ts` derives syllables from CC-CEDICT + Unihan; `verified` when ≥2 sources agree. No frequency corpus: commonness = HSK level band (complete-hsk-vocabulary, `level` field only) then Unihan `kHanyuPinlu` count; common characters = `kTGHZ2013`. Every bundled source must be cleared for commercial use; never add one without reading its licence (see THIRD_PARTY_NOTICES.md). Hand overrides only in `scripts/curation.ts` (reject or reorder only). Never invent linguistic facts; mark uncertainty `verified: false`.
 - **Audio** (`src/lib/audio.ts`): clips (`public/audio/`) are excluded from the Workbox precache (`vite.config.ts`); the app caches them itself in `native-audio-v2`, lazily per syllable or via "Download all", and deletes any other non-Workbox Cache Storage bucket at startup (bump the name whenever the recordings are replaced). Clips are fetched with `cache: 'no-cache'`. Copy about missing audio is worded from `AUDIO_CLIPS_BY_TONE` (`src/data/index.ts`), never assumed. One shared `<audio>` element fed blob URLs, unlocked in the tap handler (iOS). `src/lib/recorder.ts` asks for raw audio (no echo cancellation/noise suppression/AGC), prefers audio/mp4 then webm, caps at 10 s.
 - **Pitch:** `src/lib/pitch.ts` (YIN, noise-floor-relative gate, octave correction) for both the native and the user trace; `src/lib/overlay.ts` fits the axis.
 - **Routing:** pure grammar in `src/lib/routes.ts` (tested, incl. `crumbsFor` breadcrumbs), signal in `src/lib/router.ts`. `#/finals`, `#/initials` (overviews), `#/finals/e`, `#/initials/retroflex`, `#/browse/<category>`, `#/learn/<stage>` carry the open syllable on the hash; Old `#/practice/…` links (a removed section) redirect to Learn: `stage/<id>` to that stage, anything else to `#/learn`, and the address is rewritten (`isRedirect`). Detail view is a side panel on wide screens, a bottom sheet below 860px, where a bottom `TabBar` replaces the side nav.
@@ -54,6 +55,7 @@ npx tsx scripts/diagnose-pitch.ts         # writes reports/pitch-diagnosis.md
 - Browser testing: a Chrome headless shell can be fetched with `npx @puppeteer/browsers install chrome-headless-shell@stable` (the system `chromium-browser` is only a snap stub). Start preview servers with `node node_modules/vite/bin/vite.js preview` and kill that process: killing an `npx` wrapper leaves vite running.
 - **Restore** defaults to replace (checkbox ticked on every visit, confirm step names what is deleted); unticked it merges. No share-sheet path: `deliverFile` is a plain download.
 - **Segmented controls** (`.seg` in base.css): equal-width grid columns, a hairline before every option, the selected option inset. In Settings they span the row, labels wrap, and they stack below a 250px container width.
+- **Credits:** `src/data/credits.ts` is the one list of third-party material; it feeds the Credits and licences page (`#/credits`, `CreditsPage.tsx`, licence texts lazy-loaded), `THIRD_PARTY_NOTICES.md` (`scripts/build-notices.ts`), the Anki README and `open-data/` (`scripts/build-open-data.ts`). `tests/credits.test.ts` checks completeness and that no SUBTLEX-derived data remains.
 - **Card key:** `CardLegend` in `SyllableCard.tsx` is the one legend for syllable cards (group and Browse pages); its sample boxes reuse the `.tone-btn` classes.
 - **Design:** reference-book look, warm off-white/near-black, one vermilion accent, hairline borders, 2–4px radii, no gradients/glassmorphism/emoji. Icons only from Lucide via `src/components/icons.ts`. Touch targets ≥44px; 16px inputs on narrow screens. Self-hosted subset fonts.
 
@@ -63,7 +65,7 @@ npx tsx scripts/diagnose-pitch.ts         # writes reports/pitch-diagnosis.md
 - The lesson links and their times were removed in Round 2 at the user's request and stay removed unless the user says otherwise.
 - Practice (sessions, quiz, minimal pairs) was removed in Round 5. Its IndexedDB store `practiceHistory` stays declared (`RETIRED_STORES` in db.ts) so existing rows are not deleted; nothing reads, writes, clears or exports it. Old exports carrying it still import (the field is dropped); export version stays 6.
 - Learning path: stage membership partitions the standard syllables by the data's labels (final type, initial difficulty, tags), tones 1–4, then a review stage and a neutral-tone stage. No lesson-order data exists; the order of the three "problem" groups (j q x, zh ch sh r, z c) follows the Round 3 brief.
-- Mobile tabs are Chart, Finals, Initials, Learn, My data (for backup); Browse moves to the More menu on phones. Desktop nav shows My data with a "backup" sub-label.
+- Mobile tabs are Chart, Finals, Initials, Learn (four, equal width). My data is in the ⋯ menu directly under Settings on every screen (Database icon, check + `aria-current` when open, focus moves to its heading); Browse moves to the ⋯ menu on phones. Desktop nav also shows My data with a "backup" sub-label.
 - Forvo (`src/lib/forvo.ts`) is an outbound link only: `/word/<char>/`, else `/search/<pinyin>/zh/`; nothing fetched or stored.
 - Stored settings are read through `settingsFrom` (`store.ts`): unknown names and wrong types are ignored.
 - `DB_VERSION` (`db.ts`) and `EXPORT_VERSION` (`transfer.ts`) are both 6; upgrades and the export format are covered by `tests/db.test.ts` and `tests/transfer.test.ts`. History: DB v3 folded syllable notes into tone notes (+ `legacyNotes`), v4 dropped the lesson-times store, v5 added `practiceHistory`, v6 dropped the per-cell audio preference store. Older export files import; unknown fields are dropped.

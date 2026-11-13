@@ -39,8 +39,6 @@ async function main() {
     save('cedict', 'cedict.txt', gunzipSync(await download(SOURCES.cedict.url)));
   }
   await fetchZip('unihan', SOURCES.unihan.url, ['Unihan_Readings.txt']);
-  await fetchZip('subtlex-chr', SOURCES.subtlexChr.url, ['SUBTLEX-CH-CHR']);
-  await fetchZip('subtlex-wf', SOURCES.subtlexWf.url, ['SUBTLEX-CH-WF']);
   if (force || !existsSync(join(CACHE, 'hsk', 'complete.json'))) {
     save('hsk', 'complete.json', await download(SOURCES.hsk.url));
   }

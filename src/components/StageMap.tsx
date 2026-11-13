@@ -25,7 +25,7 @@ function cellCharacter(cells: string[]): string {
   for (const id of cells) {
     const ex = resolveExample(id, overrides.value);
     if (!ex.character) continue;
-    const rank = ex.edited.character ? -1 : (ex.bundled?.frequencyRank ?? 99999);
+    const rank = ex.edited.character ? -1 : (ex.bundled?.commonRank ?? 99999);
     if (rank < bestRank) {
       bestRank = rank;
       best = ex.character;

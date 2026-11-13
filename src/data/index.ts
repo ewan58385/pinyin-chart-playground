@@ -49,7 +49,8 @@ export interface CellExample {
   character: string;
   pinyin: string;
   meaning: string;
-  frequencyRank: number | null;
+  /** 1 = the most common example character (HSK level of its readings, then the kHanyuPinlu count). */
+  commonRank: number;
   /** Present when the character is not a word by itself; fallbackWord carries it. */
   fallback?: 'word';
   fallbackWord?: ExampleWord;
@@ -87,14 +88,18 @@ export const syllableInfo = (s: Syllable): SyllableInfo => ({
 
 export interface AudioSource {
   name: string;
-  /** Where the set can be found; "UNKNOWN" when the source folder does not say. */
   url: string;
+  /** As each recording's own metadata states it. */
   licence: string;
   licenceUrl: string;
+  /** As the source's README states it. */
+  licenceInReadme: string;
+  licenceNote: string;
   author: string;
   speaker: string;
   copyright: string;
-  note?: string;
+  /** What was done to every clip for this app. */
+  changes: string;
 }
 const audio = audioJson as unknown as {
   generatedAt: string;

@@ -1,0 +1,108 @@
+[
+ {
+  "id": "serif",
+  "name": "Source Serif 4",
+  "version": "Version 4.004;hotconv 1.0.116;makeotfexe 2.5.65601",
+  "copyright": "© 2014 - 2021 Adobe Systems Incorporated (http://www.adobe.com/), with Reserved Font Name ‘Source’.",
+  "licence": "SIL Open Font License 1.1",
+  "licenceFile": "src/assets/fonts/licences/source-serif-4-OFL.txt",
+  "url": "https://github.com/adobe-fonts/source-serif",
+  "files": [
+   "chart-serif.woff2"
+  ],
+  "renamedTo": "Chart Serif"
+ },
+ {
+  "id": "sans",
+  "name": "Source Sans 3",
+  "version": "Version 3.052;hotconv 1.1.0;makeotfexe 2.6.0",
+  "copyright": "© 2023 Adobe (http://www.adobe.com/), with Reserved Font Name ‘Source’",
+  "licence": "SIL Open Font License 1.1",
+  "licenceFile": "src/assets/fonts/licences/source-sans-3-OFL.txt",
+  "url": "https://github.com/adobe-fonts/source-sans",
+  "files": [
+   "chart-sans.woff2"
+  ],
+  "renamedTo": "Chart Sans"
+ },
+ {
+  "id": "han",
+  "name": "Source Han Serif CN",
+  "version": "Version 2.003;hotconv 1.1.1;makeotfexe 2.6.0",
+  "copyright": "© 2017-2024 Adobe (http://www.adobe.com/), with Reserved Font Name 'Source'.",
+  "licence": "SIL Open Font License 1.1",
+  "licenceFile": "src/assets/fonts/licences/source-han-serif-LICENSE.txt",
+  "url": "https://github.com/adobe-fonts/source-han-serif",
+  "files": [
+   "chart-han-core.woff2",
+   "chart-han-more.woff2"
+  ],
+  "renamedTo": "Chart Han"
+ },
+ {
+  "id": "han-sans",
+  "name": "Source Han Sans CN",
+  "version": "Version 2.005;addfeatures 5.0.0b21",
+  "copyright": "© 2014-2025 Adobe (http://www.adobe.com/), with Reserved Font Name 'Source'.",
+  "licence": "SIL Open Font License 1.1",
+  "licenceFile": "src/assets/fonts/licences/source-han-sans-LICENSE.txt",
+  "url": "https://github.com/adobe-fonts/source-han-sans",
+  "files": [
+   "chart-han-sans-core.woff2",
+   "chart-han-sans-more.woff2"
+  ],
+  "renamedTo": "Chart Han Sans"
+ },
+ {
+  "id": "literata",
+  "name": "Literata",
+  "version": "Version 3.103;gftools[0.9.29]",
+  "copyright": "Copyright 2017 The Literata Project Authors (https://github.com/googlefonts/literata)",
+  "licence": "SIL Open Font License 1.1",
+  "licenceFile": "src/assets/fonts/licences/literata-OFL.txt",
+  "url": "https://github.com/googlefonts/literata",
+  "files": [
+   "chart-serif-b.woff2"
+  ],
+  "renamedTo": "Chart Serif B"
+ },
+ {
+  "id": "inter",
+  "name": "Inter",
+  "version": "Version 4.001;git-66647c0bb",
+  "copyright": "Copyright 2016 The Inter Project Authors (https://github.com/rsms/inter)",
+  "licence": "SIL Open Font License 1.1",
+  "licenceFile": "src/assets/fonts/licences/inter-OFL.txt",
+  "url": "https://github.com/rsms/inter",
+  "files": [
+   "chart-sans-b.woff2"
+  ],
+  "renamedTo": "Chart Sans B"
+ },
+ {
+  "id": "noto-serif",
+  "name": "Noto Serif",
+  "version": "Version 2.015",
+  "copyright": "Copyright 2022 The Noto Project Authors (https://github.com/notofonts/latin-greek-cyrillic)",
+  "licence": "SIL Open Font License 1.1",
+  "licenceFile": "src/assets/fonts/licences/noto-serif-OFL.txt",
+  "url": "https://github.com/notofonts/latin-greek-cyrillic",
+  "files": [
+   "chart-serif-c.woff2"
+  ],
+  "renamedTo": "Chart Serif C"
+ },
+ {
+  "id": "noto-sans",
+  "name": "Noto Sans",
+  "version": "Version 2.015",
+  "copyright": "Copyright 2022 The Noto Project Authors (https://github.com/notofonts/latin-greek-cyrillic)",
+  "licence": "SIL Open Font License 1.1",
+  "licenceFile": "src/assets/fonts/licences/noto-sans-OFL.txt",
+  "url": "https://github.com/notofonts/latin-greek-cyrillic",
+  "files": [
+   "chart-sans-c.woff2"
+  ],
+  "renamedTo": "Chart Sans C"
+ }
+]

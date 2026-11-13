@@ -9,3 +9,6 @@ dev-dist/
 .DS_Store
 .history/
 .env
+
+# The adapted recordings are copied into open-data/ only when publishing it (npm run data:open -- --audio).
+/open-data/audio/

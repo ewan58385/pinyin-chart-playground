@@ -7,7 +7,7 @@
  *   #/initials                 initials overview; #/initials/retroflex  the zh ch sh r page
  *   #/browse                   categories;        #/browse/nasal  one category (…/ban/1 with ban open)
  *   #/learn                    the learning path; #/learn/compound  one stage (…/mai/2 with mai open)
- *   #/data  #/settings  #/about
+ *   #/data  #/settings  #/about  #/credits
  *
  * Links to a section that no longer exists (#/practice/…) lead to Learn: to
  * the stage they named, if they named one, else to the Learn index.
@@ -18,7 +18,7 @@ import { CATEGORY_BY_ID } from '../data/categories';
 import { STAGE_BY_ID } from '../data/learn';
 import type { Tone } from './pinyin';
 
-export type Page = 'chart' | 'finals' | 'initials' | 'browse' | 'learn' | 'data' | 'settings' | 'about';
+export type Page = 'chart' | 'finals' | 'initials' | 'browse' | 'learn' | 'data' | 'settings' | 'about' | 'credits';
 export interface Route {
   page: Page;
   /**
@@ -39,7 +39,7 @@ function syllableAndTone(parts: string[]): Pick<Route, 'syllable' | 'tone'> {
   return { syllable: s.id, tone: s.tones.some((t) => t.tone === n) ? (n as Tone) : null };
 }
 
-const SIMPLE_PAGES = ['data', 'about', 'settings'] as const;
+const SIMPLE_PAGES = ['data', 'about', 'settings', 'credits'] as const;
 /** The first path segment of a section that has been removed; its links are redirected. */
 const REMOVED_SECTION = 'practice';
 
@@ -106,6 +106,7 @@ const PAGE_LABEL: Record<Page, string> = {
   data: 'My data',
   settings: 'Settings',
   about: 'About',
+  credits: 'Credits and licences',
 };
 
 /** The trail to a route. Every segment is a working link; the last is the page itself. */

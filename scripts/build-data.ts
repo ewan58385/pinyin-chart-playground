@@ -8,6 +8,9 @@
  *   src/data/generated/data-meta.json   counts, thresholds, off-grid syllables
  *   reports/data-report.md              everything unverified, rare or excluded
  *
+ * How common a character or word is comes from HSK levels and Unihan's
+ * kHanyuPinlu counts (see "thresholds" below); no word-frequency corpus is used.
+ *
  * Nothing here is typed in by hand. A syllable or tone exists because a
  * dictionary source attests it, and `verified` means two independent sources agree.
  *
@@ -20,9 +23,8 @@ import {
   SOURCES,
   loadCedict,
   loadUnihan,
-  loadSubtlexChr,
-  loadSubtlexWf,
   loadHsk,
+  sourceVersions,
   isHan,
   readingKey,
   type CedictEntry,
@@ -34,31 +36,28 @@ import { INITIALS, INITIAL_BY_ID, INITIAL_INDEX } from '../src/data/initials';
 import { REJECT, PREFER_SENSE, PREFER_TRAD } from './curation';
 
 // ───────────────────────── thresholds ─────────────────────────
-// Corpus counts are out of SUBTLEX-CH's 33.5 million words.
+// No word-frequency corpus is used. How common a character or word is comes from
+// two sources that allow commercial use: the HSK level of the words it appears in
+// (complete-hsk-vocabulary, MIT; level field only), and the per-reading counts of
+// Xiàndài Hànyǔ Pínlǜ Cídiǎn as given in Unihan's kHanyuPinlu (Unicode License v3).
+// "Common character" means one of the 8,105 characters of the Tōngyòng Guīfàn
+// Hànzì Biǎo (Unihan kTGHZ2013).
 
-/** A character "works as a standalone word" if it is segmented as one this often (≈3 per million)… */
-const T_STANDALONE = 100;
-/** …and that is at least this share of all its occurrences with that reading. */
-const T_STANDALONE_RATIO = 0.05;
-/** A secondary reading only counts as standalone if it has this share of the character's use. */
+/** A secondary reading counts only if it has this share of the character's kHanyuPinlu counts. */
 const T_SECONDARY_READING = 0.1;
-/** Last resort: a very common character with its own dictionary entry for the reading. */
-const MAX_RANK_OWN_ENTRY = 2500;
-/** A word is "common" enough to carry a fallback example or a neutral-tone cell (≈3 per million). */
-const T_COMMON_WORD = 100;
-/** Minimum count for a word to be listed as an example word. */
-const T_EXAMPLE_WORD = 20;
-/** Example characters must be within this many most frequent characters. */
-const MAX_CHAR_RANK = 4000;
-/** Characters indexed for search. */
-const SEARCH_CHAR_RANK = 6500;
+/** A word is "common" (can carry a fallback example, or support a neutral-tone cell) up to this HSK level. */
+const COMMON_WORD_LEVEL = 6;
+/** A fallback example (a character shown with a word that carries it) may use HSK words up to this level (7 = the 7–9 band). */
+const FALLBACK_WORD_LEVEL = 7;
+/** Example words come from HSK words up to this level (7 = the 7–9 band of HSK 3.0). */
+const EXAMPLE_WORD_LEVEL = 7;
+/** Last resort: a character with its own dictionary entry for the reading and at least this total kHanyuPinlu count (≈ the 2,500 most counted). */
+const OWN_ENTRY_MIN_PINLU = 48;
 
 // ───────────────────────── load ─────────────────────────
 
 const cedict = loadCedict();
 const unihan = loadUnihan();
-const chrFreq = loadSubtlexChr();
-const wordFreq = loadSubtlexWf();
 const hsk = loadHsk();
 /** Single characters the HSK lists teach as words at levels 1–6. The 7–9 band is mostly literary bound characters. */
 const hskSingle = new Set(
@@ -71,8 +70,19 @@ const hskLevel = (w: string): number => {
   const levels = hsk.get(w)?.level.map((l) => Number(l.split('-')[1])) ?? [];
   return levels.length ? Math.min(...levels) : 8;
 };
-/** How much an HSK single-character word outranks a character that only qualifies on corpus counts. */
-const HSK_BOOST = 4;
+/** HSK level of the character as a word on its own (1–6), or 9. */
+const hskSingleLevel = (c: string): number => (hskSingle.has(c) ? hskLevel(c) : 9);
+/**
+ * Levels are compared in the bands the HSK itself uses: 1–3 elementary, 4–6
+ * intermediate, 7–9 advanced (the list's level 7), then words on no list. Within
+ * a band the kHanyuPinlu count decides, so 又 (level 2) still comes before 右 (level 1).
+ */
+const band = (level: number): number => (level <= 3 ? 1 : level <= 6 ? 2 : level <= 7 ? 3 : 4);
+/** One of the 8,105 standard characters (Unihan kTGHZ2013). */
+const isStandard = (c: string) => unihan.get(c)?.standard ?? false;
+/** kHanyuPinlu count of character c with reading key, and its total over all readings. */
+const pinluCount = (c: string, key: string) => unihan.get(c)?.pinlu.find((p) => readingKey(p.reading) === key)?.count ?? 0;
+const pinluTotal = (c: string) => (unihan.get(c)?.pinlu ?? []).reduce((n, p) => n + p.count, 0);
 
 interface Word {
   simp: string;
@@ -138,26 +148,45 @@ for (const [ch, u] of unihan) {
   for (const p of u.pinlu) attest(p.reading, 'pinlu', ch);
 }
 
-// ───────────────────────── 2. reading frequencies ─────────────────────────
-// How often is character c pronounced with reading r? Estimated by summing the
-// corpus counts of the words it appears in, using each word's CC-CEDICT pinyin.
+// ───────────────────────── 2. how common each character reading is ─────────────────────────
+// For every character + reading: the CC-CEDICT words it occurs in, and the lowest
+// HSK level of those words. A single-character HSK word lends its level only to the
+// readings that carry a real share of the character's kHanyuPinlu counts (的 de, not dí).
 
-const readingFreq = new Map<string, number>(); // "行|xing2" → count
-const standaloneFreq = new Map<string, number>(); // the bare character used as a word
-const tradFamilyFreq = new Map<string, number>(); // "後|hou4" → count, to choose between merged traditional forms
 interface WordUse {
   word: Word;
   /** The written word has more than one pronunciation in CC-CEDICT. */
   ambiguous: boolean;
-  /** Corpus count × share of this pronunciation variant. */
-  freq: number;
+  /** Lowest HSK level of the written word (8 = not on the lists). */
+  level: number;
 }
 const usesByCharReading = new Map<string, WordUse[]>();
-const bump = (m: Map<string, number>, k: string, v: number) => m.set(k, (m.get(k) ?? 0) + v);
+/** "行|xing2" → lowest HSK level of a word in which 行 is read xíng. */
+const charReadingLevel = new Map<string, number>();
+/** "後|hou4" → [HSK words, all words] written with that traditional form for that reading, to choose between merged forms. */
+const tradFamily = new Map<string, [number, number]>();
+
+/** The reading with the largest kHanyuPinlu count, or the customary one (kMandarin). An HSK one-character word means this reading. */
+function dominantReading(c: string, keys: string[]): string {
+  const counts = keys.map((k) => pinluCount(c, k));
+  const max = Math.max(0, ...counts);
+  if (max > 0) return keys[counts.indexOf(max)];
+  const primary = unihan.get(c)?.mandarin[0];
+  return primary && keys.includes(readingKey(primary)) ? readingKey(primary) : keys[0];
+}
+
+/** Readings of a single character that have a real share of its use (kHanyuPinlu), or its customary reading. */
+function mainReadings(c: string, keys: string[]): Set<string> {
+  const u = unihan.get(c);
+  const counts = keys.map((k) => pinluCount(c, k));
+  const sum = counts.reduce((a, b) => a + b, 0);
+  if (sum > 0) return new Set(keys.filter((_, i) => counts[i] / sum >= T_SECONDARY_READING));
+  const primary = u?.mandarin[0] ? readingKey(u.mandarin[0]) : '';
+  return keys.includes(primary) ? new Set([primary]) : new Set(keys);
+}
 
 for (const [simp, entries] of bySimp) {
-  const total = wordFreq.get(simp) ?? 0;
-  // Distinct pronunciations of this written word.
+  const level = hskLevel(simp);
   const variants = new Map<string, Word[]>();
   for (const e of entries) {
     const list = variants.get(e.numeric);
@@ -165,56 +194,32 @@ for (const [simp, entries] of bySimp) {
     else variants.set(e.numeric, [e]);
   }
   const keys = [...variants.keys()];
-  let shares: number[];
-  if (keys.length === 1) {
-    shares = [1];
-  } else if (Array.from(simp).length === 1) {
-    // A character with several readings. Split its standalone count by the
-    // per-reading counts in Xiàndài Hànyǔ Pínlǜ Cídiǎn; minor readings get none,
-    // because those counts are mostly the reading's use inside words (的 dí in 的确).
-    const u = unihan.get(simp);
-    let counts = keys.map((k) => u?.pinlu.find((p) => readingKey(p.reading) === k)?.count ?? 0);
-    if (!counts.some((c) => c > 0)) {
-      const primary = u?.mandarin[0] ? readingKey(u.mandarin[0]) : '';
-      counts = keys.map((k) => (k === primary ? 1 : 0));
-      if (!counts.some((c) => c > 0)) counts = keys.map(() => 1);
-    }
-    const sum0 = counts.reduce((a, b) => a + b, 0);
-    counts = counts.map((c) => (c / sum0 >= T_SECONDARY_READING ? c : 0));
-    const sum = counts.reduce((a, b) => a + b, 0);
-    shares = counts.map((c) => c / sum);
-  } else {
-    shares = keys.map(() => 1 / keys.length);
-  }
-  keys.forEach((k, vi) => {
-    const group = variants.get(k)!;
-    const freq = total * shares[vi];
+  const chars = Array.from(simp);
+  // A one-character HSK word is listed for one meaning: it lends its level to its main reading only (见 jiàn, not xiàn).
+  const lends = chars.length === 1 ? new Set([dominantReading(simp, keys)]) : new Set(keys);
+  for (const [k, group] of variants) {
     const first = group[0];
-    const chars = Array.from(simp);
     chars.forEach((c, i) => {
       const rk = `${c}|${readingKey(first.readings[i])}`;
-      if (freq > 0) bump(readingFreq, rk, freq);
-      if (chars.length === 1 && freq > 0) bump(standaloneFreq, rk, freq);
-      for (const e of group) {
-        const list = usesByCharReading.get(rk);
-        const use = { word: e, freq, ambiguous: keys.length > 1 };
-        if (list) list.push(use);
-        else usesByCharReading.set(rk, [use]);
-      }
+      if (level <= 7 && lends.has(k)) charReadingLevel.set(rk, Math.min(charReadingLevel.get(rk) ?? 9, level));
+      const list = usesByCharReading.get(rk) ?? [];
+      for (const e of group) list.push({ word: e, ambiguous: keys.length > 1, level });
+      usesByCharReading.set(rk, list);
     });
-    // Each traditional form gets the share of the words written with it.
-    const tradSeen = new Set<string>();
-    for (const e of group) {
-      if (chars.length === 1) continue;
-      Array.from(e.trad).forEach((tc, i) => {
-        const tk = `${tc}|${readingKey(e.readings[i])}`;
-        if (tradSeen.has(tk + i)) return;
-        tradSeen.add(tk + i);
-        if (freq > 0) bump(tradFamilyFreq, tk, freq);
-      });
+    if (chars.length > 1) {
+      for (const e of group) {
+        Array.from(e.trad).forEach((tc, i) => {
+          const tk = `${tc}|${readingKey(e.readings[i])}`;
+          const v = tradFamily.get(tk) ?? [0, 0];
+          tradFamily.set(tk, [v[0] + (level <= 7 ? 1 : 0), v[1] + 1]);
+        });
+      }
     }
-  });
+  }
 }
+
+/** Order for "more common first": HSK level of the reading, then its kHanyuPinlu count. */
+const levelOf = (c: string, key: string) => charReadingLevel.get(`${c}|${key}`) ?? 9;
 
 // ───────────────────────── 3. glosses ─────────────────────────
 
@@ -335,7 +340,8 @@ interface CellExample {
   character: string;
   pinyin: string;
   meaning: string;
-  frequencyRank: number | null;
+  /** 1 = the most common example character (HSK level of its readings, then kHanyuPinlu count). */
+  commonRank: number;
   fallback?: 'word';
   fallbackWord?: ExampleWord;
   verified: boolean;
@@ -345,39 +351,27 @@ interface CellExample {
 
 const wordGloss = (w: Word) => makeGloss(w.defs, 44, PREFER_SENSE[`${w.simp}|${w.numeric}`]);
 
-function bestWordFor(c: string, key: string, minFreq: number, lengths: number[]): WordUse | null {
-  const uses = (usesByCharReading.get(`${c}|${key}`) ?? []).filter(
-    (u) =>
-      !u.word.proper &&
-      lengths.includes(u.word.readings.length) &&
-      u.freq >= minFreq &&
-      !u.word.defs.some((d) => VULGAR.test(d)) &&
-      !CRUDE.test(wordGloss(u.word).text),
-  );
-  // Words from the earliest HSK level first, then by corpus frequency.
-  uses.sort((a, b) => hskLevel(a.word.simp) - hskLevel(b.word.simp) || b.freq - a.freq);
+const usable = (u: WordUse, maxLevel: number) =>
+  !u.word.proper && u.level <= maxLevel && !u.word.defs.some((d) => VULGAR.test(d)) && !CRUDE.test(wordGloss(u.word).text);
+
+/** HSK words first by level, then words with one pronunciation, then shorter, then in a fixed order. */
+const byLevel = (a: WordUse, b: WordUse) =>
+  a.level - b.level || Number(a.ambiguous) - Number(b.ambiguous) || a.word.readings.length - b.word.readings.length || a.word.simp.localeCompare(b.word.simp);
+
+function bestWordFor(c: string, key: string, maxLevel: number, lengths: number[]): WordUse | null {
+  const uses = (usesByCharReading.get(`${c}|${key}`) ?? []).filter((u) => lengths.includes(u.word.readings.length) && usable(u, maxLevel));
+  uses.sort(byLevel);
   for (const u of uses) if (wordGloss(u.word).text) return u;
   return null;
 }
 
 function exampleWords(c: string, key: string): ExampleWord[] {
   const uses = (usesByCharReading.get(`${c}|${key}`) ?? []).filter(
-    (u) =>
-      !u.word.proper &&
-      u.word.readings.length >= 2 &&
-      u.word.readings.length <= 4 &&
-      u.freq >= T_EXAMPLE_WORD &&
-      !u.word.defs.some((d) => VULGAR.test(d)) &&
-      !CRUDE.test(wordGloss(u.word).text),
+    (u) => u.word.readings.length >= 2 && u.word.readings.length <= 4 && usable(u, EXAMPLE_WORD_LEVEL),
   );
   const full = !key.endsWith('5');
-  uses.sort(
-    (a, b) =>
-      (full ? Number(a.ambiguous) - Number(b.ambiguous) : 0) ||
-      hskLevel(a.word.simp) - hskLevel(b.word.simp) ||
-      b.freq - a.freq ||
-      a.word.readings.length - b.word.readings.length,
-  );
+  // In the full tones, words with a single pronunciation first; in the neutral tone that would hide most examples.
+  uses.sort((a, b) => (full ? Number(a.ambiguous) - Number(b.ambiguous) : 0) || byLevel(a, b));
   const out: ExampleWord[] = [];
   for (const u of uses) {
     if (out.some((o) => o.word === u.word.simp)) continue;
@@ -402,10 +396,9 @@ function charEntry(c: string, key: string): Word | null {
     if (!hit) throw new Error(`Curation: no entry ${wantTrad} for ${c}|${key}`);
     return hit;
   }
+  const fam = (w: Word) => tradFamily.get(`${w.trad}|${key}`) ?? [0, 0];
   entries.sort(
-    (a, b) =>
-      (tradFamilyFreq.get(`${b.trad}|${key}`) ?? 0) - (tradFamilyFreq.get(`${a.trad}|${key}`) ?? 0) ||
-      makeGloss(b.defs, 200).text.length - makeGloss(a.defs, 200).text.length,
+    (a, b) => fam(b)[0] - fam(a)[0] || fam(b)[1] - fam(a)[1] || makeGloss(b.defs, 200).text.length - makeGloss(a.defs, 200).text.length,
   );
   return entries[0];
 }
@@ -417,7 +410,7 @@ function unihanHasReading(c: string, key: string): boolean {
 }
 
 const charsByReading = new Map<string, Set<string>>();
-for (const rk of new Set([...readingFreq.keys(), ...usesByCharReading.keys()])) {
+for (const rk of usesByCharReading.keys()) {
   const [c, key] = rk.split('|');
   if (!isHan(c)) continue;
   const set = charsByReading.get(key);
@@ -425,36 +418,52 @@ for (const rk of new Set([...readingFreq.keys(), ...usesByCharReading.keys()])) 
   else charsByReading.set(key, new Set([c]));
 }
 
+/** Rank of every standard character, most common first: lowest HSK level of any reading, then total kHanyuPinlu count. */
+const commonRank = new Map<string, number>();
+{
+  const best = new Map<string, number>();
+  for (const [rk, lv] of charReadingLevel) {
+    const c = rk.split('|')[0];
+    best.set(c, Math.min(best.get(c) ?? 9, lv));
+  }
+  const chars = [...unihan.keys()].filter((c) => isStandard(c) && isHan(c));
+  chars.sort((a, b) => band(best.get(a) ?? 9) - band(best.get(b) ?? 9) || pinluTotal(b) - pinluTotal(a) || a.localeCompare(b));
+  chars.forEach((c, i) => commonRank.set(c, i + 1));
+}
+
+/** The reading is one the character really has in its own right (not a minor share of its kHanyuPinlu counts). */
+function mainReadingOf(c: string, key: string): boolean {
+  const keys = [...new Set((bySimp.get(c) ?? []).map((w) => w.numeric))];
+  if (!keys.includes(key)) keys.push(key);
+  return mainReadings(c, keys).has(key);
+}
+
 function chooseExample(base: string, tone: Tone): CellExample | null {
   const key = `${base}${tone}`;
   interface Cand {
     c: string;
-    rank: number;
-    rf: number;
-    /** 0 = not a standalone word, 1 = by corpus evidence, 2 = an HSK single-character word. */
-    standalone: 0 | 1 | 2;
+    level: number;
+    pinlu: number;
+    /** An HSK single-character word (levels 1–6) with this as one of its main readings. */
+    standalone: boolean;
     interjection: boolean;
     ownEntry: boolean;
     gloss: string;
   }
   const cands: Cand[] = [];
   for (const c of charsByReading.get(key) ?? []) {
-    const rank = chrFreq.get(c)?.rank ?? Infinity;
-    if (rank > MAX_CHAR_RANK) continue;
+    if (!isStandard(c)) continue;
     if (REJECT[key]?.includes(c)) continue;
     const rk = `${c}|${key}`;
     const entry = charEntry(c, key);
     const g = entry ? makeGloss(entry.defs, 34, PREFER_SENSE[rk]) : { text: '', bound: true, interjection: false };
-    const rf = readingFreq.get(rk) ?? 0;
-    const sf = standaloneFreq.get(rk) ?? 0;
-    let standalone: 0 | 1 | 2 = 0;
-    if (entry && g.text && !g.bound && sf > 0) {
-      if (hskSingle.has(c)) standalone = 2;
-      else if (sf >= T_STANDALONE && sf / rf >= T_STANDALONE_RATIO) standalone = 1;
-    }
-    cands.push({ c, rank, rf, standalone, interjection: g.interjection, ownEntry: !!entry && !!g.text, gloss: g.text });
+    const standalone = !!entry && !!g.text && !g.bound && hskSingle.has(c) && mainReadingOf(c, key);
+    cands.push({ c, level: levelOf(c, key), pinlu: pinluCount(c, key), standalone, interjection: g.interjection, ownEntry: !!entry && !!g.text, gloss: g.text });
   }
-  cands.sort((a, b) => b.rf - a.rf || a.rank - b.rank);
+  const common = (a: Cand, b: Cand) => band(a.level) - band(b.level) || b.pinlu - a.pinlu || (commonRank.get(a.c) ?? 1e9) - (commonRank.get(b.c) ?? 1e9);
+  // Words on their own are compared by their level as one-character words (做 before 作, whose level comes from 工作).
+  const asWord = (a: Cand, b: Cand) => band(hskSingleLevel(a.c)) - band(hskSingleLevel(b.c)) || b.pinlu - a.pinlu || common(a, b);
+  cands.sort(common);
 
   const finish = (cand: Cand, fallbackWord: ExampleWord | null): CellExample => {
     const verified = unihanHasReading(cand.c, key);
@@ -463,7 +472,7 @@ function chooseExample(base: string, tone: Tone): CellExample | null {
       pinyin: toneMark(base, tone),
       // A fallback cell is glossed by its word: the character is not a word by itself.
       meaning: fallbackWord?.meaning || cand.gloss,
-      frequencyRank: Number.isFinite(cand.rank) ? cand.rank : null,
+      commonRank: commonRank.get(cand.c)!,
       ...(fallbackWord ? { fallback: 'word' as const, fallbackWord } : {}),
       verified,
       ...(verified
@@ -479,15 +488,14 @@ function chooseExample(base: string, tone: Tone): CellExample | null {
   };
 
   // 1. A character that is a word by itself. Content words before interjections
-  //    (except in the neutral tone, where particles are the point), HSK words first.
+  //    (except in the neutral tone, where particles are the point).
   const content = (x: Cand) => (tone !== 5 && x.interjection ? 0 : 1);
-  const score = (x: Cand) => x.rf * (x.standalone === 2 ? HSK_BOOST : 1);
-  const standalone = cands.filter((x) => x.standalone).sort((a, b) => content(b) - content(a) || score(b) - score(a))[0];
+  const standalone = cands.filter((x) => x.standalone).sort((a, b) => content(b) - content(a) || asWord(a, b))[0];
   if (standalone) return finish(standalone, null);
 
-  // 2. The most frequent character, shown with a common word that carries it.
+  // 2. The most common character, shown with a common word that carries it.
   for (const cand of cands) {
-    const use = bestWordFor(cand.c, key, T_COMMON_WORD, [2]) ?? bestWordFor(cand.c, key, T_COMMON_WORD, [3, 4]);
+    const use = bestWordFor(cand.c, key, FALLBACK_WORD_LEVEL, [2]) ?? bestWordFor(cand.c, key, FALLBACK_WORD_LEVEL, [3, 4]);
     if (!use) continue;
     return finish(cand, {
       word: use.word.simp,
@@ -498,17 +506,15 @@ function chooseExample(base: string, tone: Tone): CellExample | null {
 
   // 3. A very common character whose own dictionary entry has this reading,
   //    confirmed by Unihan (啊 á). Otherwise the cell stays blank.
-  const own = cands
-    .filter((x) => x.ownEntry && x.rank <= MAX_RANK_OWN_ENTRY && unihanHasReading(x.c, key))
-    .sort((a, b) => a.rank - b.rank)[0];
+  const own = cands.filter((x) => x.ownEntry && pinluTotal(x.c) >= OWN_ENTRY_MIN_PINLU && unihanHasReading(x.c, key)).sort(common)[0];
   return own ? finish(own, null) : null;
 }
 
 /** Does a common word carry this neutral-tone reading? */
 function neutralHasCommonSupport(key: string): boolean {
   for (const c of charsByReading.get(key) ?? []) {
-    if ((chrFreq.get(c)?.rank ?? Infinity) > MAX_CHAR_RANK || REJECT[key]?.includes(c)) continue;
-    if (bestWordFor(c, key, T_COMMON_WORD, [2, 3, 4])) return true;
+    if (!isStandard(c) || REJECT[key]?.includes(c)) continue;
+    if (bestWordFor(c, key, COMMON_WORD_LEVEL, [2, 3, 4])) return true;
   }
   return false;
 }
@@ -518,7 +524,7 @@ if (process.env.DEBUG_PIECES) {
     const [w, key] = rk.split('|');
     for (const e of (bySimp.get(w) ?? []).filter((x) => !x.proper && x.numeric === key)) {
       makeGloss(e.defs, 40);
-      console.log(`${w}|${key} [${e.trad}] family=${Math.round(tradFamilyFreq.get(`${e.trad}|${key}`) ?? 0)}:`, debugPieces.join(' | '));
+      console.log(`${w}|${key} [${e.trad}] family=${(tradFamily.get(`${e.trad}|${key}`) ?? [0, 0]).join('/')}:`, debugPieces.join(' | '));
     }
   }
   process.exit(0);
@@ -651,22 +657,21 @@ for (const s of syllables) {
 const onChart = new Set(syllables.flatMap((s) => s.tones.map((t) => t.numeric)));
 const charIndex: Record<string, string> = {};
 {
-  const perChar = new Map<string, { key: string; rf: number }[]>();
-  for (const rk of new Set([...readingFreq.keys(), ...usesByCharReading.keys()])) {
+  // Every standard character, with the readings it has in its own right (its own
+  // CC-CEDICT entry) or in an HSK word, most common reading first.
+  const perChar = new Map<string, { key: string; level: number; pinlu: number }[]>();
+  for (const rk of usesByCharReading.keys()) {
     const [c, key] = rk.split('|');
-    if (!isHan(c) || !onChart.has(key)) continue;
-    if ((chrFreq.get(c)?.rank ?? Infinity) > SEARCH_CHAR_RANK) continue;
-    // Keep readings the character has in its own right, or that carry real corpus weight.
+    if (!isHan(c) || !onChart.has(key) || !isStandard(c)) continue;
     const own = (bySimp.get(c) ?? []).some((w) => w.numeric === key);
-    const rf = readingFreq.get(rk) ?? 0;
-    if (!own && rf < T_COMMON_WORD) continue;
+    if (!own && !charReadingLevel.has(rk)) continue;
     const list = perChar.get(c) ?? [];
-    list.push({ key, rf });
+    list.push({ key, level: levelOf(c, key), pinlu: pinluCount(c, key) });
     perChar.set(c, list);
   }
-  for (const [c, list] of [...perChar].sort((a, b) => chrFreq.get(a[0])!.rank - chrFreq.get(b[0])!.rank)) {
+  for (const [c, list] of [...perChar].sort((a, b) => commonRank.get(a[0])! - commonRank.get(b[0])!)) {
     charIndex[c] = list
-      .sort((a, b) => b.rf - a.rf)
+      .sort((a, b) => band(a.level) - band(b.level) || b.pinlu - a.pinlu || a.key.localeCompare(b.key))
       .slice(0, 5)
       .map((x) => x.key)
       .join(' ');
@@ -707,7 +712,17 @@ const toneCells = syllables.flatMap((s) => s.tones.map((t) => ({ s, t })));
 const meta = {
   generatedAt: new Date().toISOString().slice(0, 10),
   sources: SOURCES,
-  thresholds: { HSK_BOOST, T_STANDALONE, T_STANDALONE_RATIO, T_SECONDARY_READING, T_COMMON_WORD, T_EXAMPLE_WORD, MAX_CHAR_RANK, MAX_RANK_OWN_ENTRY, SEARCH_CHAR_RANK },
+  sourceVersions: sourceVersions(),
+  thresholds: {
+    T_SECONDARY_READING,
+    COMMON_WORD_LEVEL,
+    FALLBACK_WORD_LEVEL,
+    EXAMPLE_WORD_LEVEL,
+    OWN_ENTRY_MIN_PINLU,
+    commonCharacters: 'Unihan kTGHZ2013 (the 8,105 characters of the Tōngyòng Guīfàn Hànzì Biǎo, 2013)',
+    ranking:
+      'HSK level band of the reading (1–3, 4–6, 7–9, none; complete-hsk-vocabulary, level field only), then the kHanyuPinlu count of the reading (Unihan). Characters that are words on their own are compared by their level as one-character words. An HSK one-character word lends its level to its main reading only.',
+  },
   counts: {
     initials: INITIALS.length,
     finals: FINALS.length,
@@ -749,9 +764,9 @@ md.push(
   '`kXHC1983` (Xiàndài Hànyǔ Cídiǎn), `kTGHZ2013` (Tōngyòng Guīfàn Hànzì Zìdiǎn) and `kHanyuPinlu` (Xiàndài Hànyǔ Pínlǜ Cídiǎn).',
   '',
   '- A syllable or tone cell is `verified` when at least two of the four attest it. These are `status: "standard"`.',
-  '- `status: "neutral-in-word"`: a neutral-tone reading that CC-CEDICT gives inside a common word (≥ ' +
-    T_COMMON_WORD +
-    ' occurrences in SUBTLEX-CH). No second machine-readable source exists for these, so they are shown but `verified: false`.',
+  '- `status: "neutral-in-word"`: a neutral-tone reading that CC-CEDICT gives inside a common word (an HSK word up to level ' +
+    COMMON_WORD_LEVEL +
+    '). No second machine-readable source exists for these, so they are shown but `verified: false`.',
   '- `status: "single-source"`: only one source attests it. Kept in the data, hidden on the chart unless "show unverified" is on.',
   '- An example character is `verified` when Unihan confirms that the character has that reading.',
   '',
@@ -810,9 +825,23 @@ md.push(
     .join(', '),
   '',
 );
-md.push('## Syllables tagged `rare`', '', 'No tone has a character within the ' + MAX_CHAR_RANK + ' most frequent.', '');
+md.push('## Syllables tagged `rare`', '', 'No tone has an example character among the 8,105 standard characters (kTGHZ2013).', '');
 md.push(syllables.filter((s) => s.tags.includes('rare')).map((s) => s.id).join(', '), '');
+// Which rejections in curation.ts still change a pick: without the rejection, would the rejected character be chosen?
+const curationCheck: { key: string; c: string; needed: boolean }[] = [];
+for (const [key, list] of Object.entries(REJECT)) {
+  const base = key.slice(0, -1);
+  const tone = Number(key.slice(-1)) as Tone;
+  for (const c of list) {
+    REJECT[key] = list.filter((x) => x !== c);
+    curationCheck.push({ key, c, needed: chooseExample(base, tone)?.character === c });
+    REJECT[key] = list;
+  }
+}
+md.push('## Curation check', '', 'Each rejection in `scripts/curation.ts`, and whether the automatic choice would otherwise pick that character.', '');
+md.push(curationCheck.map((x) => `\`${x.key}\` ${x.c}: ${x.needed ? 'still needed' : 'not picked without it'}`).join(', '), '');
 writeFileSync(join(ROOT, 'reports', 'data-report.md'), md.join('\n'));
+console.log('curation not needed:', curationCheck.filter((x) => !x.needed).map((x) => `${x.key} ${x.c}`).join(', ') || 'none');
 
 console.log(meta.counts);
 console.log('off-grid:', meta.offGrid.map((o) => o.id).join(' '));

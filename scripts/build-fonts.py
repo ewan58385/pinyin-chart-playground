@@ -47,48 +47,56 @@ OUT = ROOT / "src" / "assets" / "fonts"
 
 SOURCES = {
     "serif": {
+        "home": "https://github.com/adobe-fonts/source-serif",
         "dir": "source-serif-4",
         "file": "SourceSerif4[opsz,wght].ttf",
         "url": "https://github.com/google/fonts/raw/main/ofl/sourceserif4/SourceSerif4%5Bopsz%2Cwght%5D.ttf",
         "licence": ("OFL.txt", "https://github.com/google/fonts/raw/main/ofl/sourceserif4/OFL.txt"),
     },
     "sans": {
+        "home": "https://github.com/adobe-fonts/source-sans",
         "dir": "source-sans-3",
         "file": "SourceSans3[wght].ttf",
         "url": "https://github.com/google/fonts/raw/main/ofl/sourcesans3/SourceSans3%5Bwght%5D.ttf",
         "licence": ("OFL.txt", "https://github.com/google/fonts/raw/main/ofl/sourcesans3/OFL.txt"),
     },
     "han": {
+        "home": "https://github.com/adobe-fonts/source-han-serif",
         "dir": "source-han-serif",
         "file": "SourceHanSerifCN-Medium.otf",
         "url": "https://github.com/adobe-fonts/source-han-serif/raw/release/SubsetOTF/CN/SourceHanSerifCN-Medium.otf",
         "licence": ("LICENSE.txt", "https://github.com/adobe-fonts/source-han-serif/raw/release/LICENSE.txt"),
     },
     "han-sans": {
+        "home": "https://github.com/adobe-fonts/source-han-sans",
         "dir": "source-han-sans",
         "file": "SourceHanSansCN-Medium.otf",
         "url": "https://github.com/adobe-fonts/source-han-sans/raw/release/SubsetOTF/CN/SourceHanSansCN-Medium.otf",
         "licence": ("LICENSE.txt", "https://github.com/adobe-fonts/source-han-sans/raw/release/LICENSE.txt"),
     },
     "literata": {
+        "home": "https://github.com/googlefonts/literata",
         "dir": "literata",
         "file": "Literata[opsz,wght].ttf",
         "url": "https://github.com/google/fonts/raw/main/ofl/literata/Literata%5Bopsz%2Cwght%5D.ttf",
         "licence": ("OFL.txt", "https://github.com/google/fonts/raw/main/ofl/literata/OFL.txt"),
     },
     "inter": {
+        "home": "https://github.com/rsms/inter",
         "dir": "inter",
         "file": "Inter[opsz,wght].ttf",
         "url": "https://github.com/google/fonts/raw/main/ofl/inter/Inter%5Bopsz%2Cwght%5D.ttf",
         "licence": ("OFL.txt", "https://github.com/google/fonts/raw/main/ofl/inter/OFL.txt"),
     },
     "noto-serif": {
+        "home": "https://github.com/notofonts/latin-greek-cyrillic",
         "dir": "noto-serif",
         "file": "NotoSerif[wdth,wght].ttf",
         "url": "https://github.com/google/fonts/raw/main/ofl/notoserif/NotoSerif%5Bwdth%2Cwght%5D.ttf",
         "licence": ("OFL.txt", "https://github.com/google/fonts/raw/main/ofl/notoserif/OFL.txt"),
     },
     "noto-sans": {
+        "home": "https://github.com/notofonts/latin-greek-cyrillic",
         "dir": "noto-sans",
         "file": "NotoSans[wdth,wght].ttf",
         "url": "https://github.com/google/fonts/raw/main/ofl/notosans/NotoSans%5Bwdth%2Cwght%5D.ttf",
@@ -191,7 +199,45 @@ def attribution_han() -> str:
     return "".join(sorted({c for c in text if "\u3400" <= c <= "\u9fff" or "\uf900" <= c <= "\ufaff"}))
 
 
+# Which subset files come from which source font.
+OUTPUTS = {
+    "serif": ["chart-serif.woff2"],
+    "sans": ["chart-sans.woff2"],
+    "literata": ["chart-serif-b.woff2"],
+    "inter": ["chart-sans-b.woff2"],
+    "noto-serif": ["chart-serif-c.woff2"],
+    "noto-sans": ["chart-sans-c.woff2"],
+    "han": ["chart-han-core.woff2", "chart-han-more.woff2"],
+    "han-sans": ["chart-han-sans-core.woff2", "chart-han-sans-more.woff2"],
+}
+
+
+def write_info() -> None:
+    """Name, version, copyright and licence of each source font, read from the font files, for the credits."""
+    info = []
+    for key, src in SOURCES.items():
+        sub = TTFont(OUT / OUTPUTS[key][0])
+        n = sub["name"]
+        orig = TTFont(CACHE / src["dir"] / src["file"], lazy=True) if (CACHE / src["dir"] / src["file"]).exists() else None
+        name = (orig and (orig["name"].getDebugName(16) or orig["name"].getDebugName(1))) or src["dir"]
+        info.append({
+            "id": key,
+            "name": name,
+            "version": (n.getDebugName(5) or "").strip(),
+            "copyright": (n.getDebugName(0) or "").strip(),
+            "licence": "SIL Open Font License 1.1",
+            "licenceFile": f"src/assets/fonts/licences/{src['dir']}-{src['licence'][0]}",
+            "url": src["home"],
+            "files": OUTPUTS[key],
+            "renamedTo": n.getDebugName(1),
+        })
+    (OUT / "font-info.json").write_text(json.dumps(info, ensure_ascii=False, indent=1) + "\n", "utf8")
+
+
 def main() -> None:
+    if "--info-only" in sys.argv:
+        write_info()
+        return
     chars = json.loads((ROOT / "src" / "data" / "generated" / "font-chars.json").read_text("utf8"))
     core = {ord(c) for c in chars["chart"] + HAN_EXTRA}
     more = {ord(c) for c in chars["detail"] + attribution_han()} - core
@@ -238,6 +284,7 @@ def main() -> None:
     css += face("Chart Han Sans", "chart-han-sans-core.woff2", extra=core_range) + face("Chart Han Sans", "chart-han-sans-more.woff2", extra=more_range)
     (ROOT / "src" / "styles").mkdir(parents=True, exist_ok=True)
     (ROOT / "src" / "styles" / "fonts.css").write_text(css, "utf8")
+    write_info()
     print(f"Total {total / 1024:.0f} KB. Wrote src/styles/fonts.css")
 
 

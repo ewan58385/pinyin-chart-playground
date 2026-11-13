@@ -56,6 +56,9 @@ const argValue = (name: string) => {
 const SOURCE_DIR = argValue('source') ?? join(CACHE, 'audio-cmn', 'syllabs');
 
 const UNKNOWN = 'UNKNOWN';
+const REPOSITORY = 'https://github.com/hugolpz/audio-cmn';
+/** What was done to every clip, for the ShareAlike "indicate changes" requirement. */
+const CHANGES = 'Trimmed to the syllable, high-pass filtered (70 Hz), levelled to a common loudness, faded in and out, and converted to mono 24 kHz MP3 at 48 kbit/s.';
 
 // ───────────────────────── source metadata ─────────────────────────
 
@@ -273,13 +276,15 @@ interface Syllable {
 
 interface Clip {
   file: string;
+  source: string;
   original: string;
   speaker: string;
-  licence: string;
   author: string;
+  licence: string;
   copyright: string;
   url: string;
-  recorded: string;
+  changes: string;
+  recorded?: string;
   bytes: number;
   ms: number;
   gainDb: number;
@@ -329,17 +334,27 @@ async function main() {
     return [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? UNKNOWN;
   };
   const licence = pick('licence');
+  // Checked against the repository on 2026-11-13: its README is byte-identical to the
+  // one in the source folder. Only the syllables set (syllabs v.2, speaker Chen Wang)
+  // is used; the repository's separate HSK words set (speaker Yue Tan) is not.
   const source = {
-    name: 'Audio-cmn, syllables set',
+    name: 'audio-cmn, syllables set (syllabs v.2)',
     collection: pick('collection'),
     speaker,
-    url: UNKNOWN,
+    url: REPOSITORY,
+    /** As each recording's own metadata states it (SWAC_COLL_LICENSE). */
     licence,
-    licenceUrl: LICENCE_URLS[licence] ?? UNKNOWN,
-    author: pick('authors'),
+    licenceUrl: LICENCE_URLS[licence] ?? '',
+    /** As the repository README states it. */
+    licenceInReadme: 'CC-by-sa',
+    licenceNote:
+      'The repository README states the licence as "CC-by-sa" with no version, and the repository has no LICENSE file. Each recording\'s own metadata (SWAC_COLL_LICENSE) states "' +
+      licence +
+      '".',
+    author: `${speaker} (speaker); Hugo Lopez, PLIDAM, INALCO (project management, repository, audio compression, file renaming); Nicolas Vion (recording software)`,
+    authorsInMetadata: pick('authors'),
     copyright: pick('copyright'),
-    note:
-      'Recorded with SWAC Record. Name, speaker, authors and licence are taken from the tags in the files and the README that came with them; the folder does not give a web address for the set.',
+    changes: CHANGES,
   };
 
   // ── map files to cells ──
@@ -424,13 +439,15 @@ async function main() {
       checks[cell.id] = { speech: a!.speech, peakDb: out.peakDb, onsetDb: a!.onsetAboveNoiseDb };
       clips[cell.id] = {
         file,
+        source: 'audio-cmn',
         original,
         speaker: t.speaker ?? speaker,
+        author: source.author,
         licence: t.licence ?? licence,
-        author: t.authors ?? source.author,
         copyright: t.copyright ?? source.copyright,
         url: source.url,
-        recorded: t.recorded ?? UNKNOWN,
+        changes: CHANGES,
+        ...(t.recorded ? { recorded: t.recorded } : {}),
         bytes: statSync(dest).size,
         ms: Math.round(out.seconds * 1000),
         gainDb: Math.round(a!.gainDb * 10) / 10,
@@ -515,7 +532,8 @@ async function main() {
     '',
     `- ${source.name} (collection tag \`${source.collection}\`), from the local folder \`${relative(ROOT, SOURCE_DIR)}\` (not committed).`,
     `- Speaker: ${speaker}. Authors: ${source.author}. ${source.copyright}.`,
-    `- Licence: ${licence}${source.licenceUrl !== UNKNOWN ? ` (${source.licenceUrl})` : ''}. Web address of the set: ${source.url}.`,
+    `- Licence: ${licence} as stated in each file's metadata${source.licenceUrl ? ` (${source.licenceUrl})` : ''}. ${source.licenceNote} Repository: ${source.url}.`,
+    `- Changes made to every clip: ${CHANGES}`,
     `- Folder contents: ${audioFiles.length} MP3 files${otherFiles.length ? ` and ${otherFiles.join(', ')}` : ''}.`,
     `- Speakers named in the file tags: ${[...speakers.entries()].map(([s, n]) => `${s} (${n} files)`).join(', ')}; ${untagged.length} files carry no tags (${untagged.join(', ') || 'none'}). Used: ${speaker}, the speaker with the most chart cells covered.${otherSpeaker.length ? ` Files by other speakers, not used: ${otherSpeaker.join(', ')}.` : ''}`,
     '',

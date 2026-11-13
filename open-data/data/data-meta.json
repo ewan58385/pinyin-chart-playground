@@ -1,0 +1,192 @@
+{
+ "generatedAt": "2026-11-13",
+ "sources": {
+  "cedict": {
+   "name": "CC-CEDICT",
+   "url": "https://www.mdbg.net/chinese/export/cedict/cedict_1_0_ts_utf-8_mdbg.txt.gz",
+   "homepage": "https://www.mdbg.net/chinese/dictionary?page=cc-cedict",
+   "licence": "CC BY-SA 4.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+   "author": "MDBG and CC-CEDICT contributors"
+  },
+  "unihan": {
+   "name": "Unicode Han Database (Unihan)",
+   "url": "https://www.unicode.org/Public/UCD/latest/ucd/Unihan.zip",
+   "homepage": "https://www.unicode.org/reports/tr38/",
+   "licence": "Unicode License v3",
+   "licenceUrl": "https://www.unicode.org/license.txt",
+   "author": "Unicode, Inc."
+  },
+  "hsk": {
+   "name": "complete-hsk-vocabulary",
+   "url": "https://raw.githubusercontent.com/drkameleon/complete-hsk-vocabulary/main/complete.json",
+   "homepage": "https://github.com/drkameleon/complete-hsk-vocabulary",
+   "licence": "MIT",
+   "licenceUrl": "https://github.com/drkameleon/complete-hsk-vocabulary/blob/main/LICENSE",
+   "author": "Yanis Zafirópulos (drkameleon)"
+  }
+ },
+ "sourceVersions": {
+  "cedict": "release of 2026-11-11",
+  "unihan": "Unicode 18.0.0",
+  "hsk": "main branch, retrieved 2026-11-13"
+ },
+ "thresholds": {
+  "T_SECONDARY_READING": 0.1,
+  "COMMON_WORD_LEVEL": 6,
+  "FALLBACK_WORD_LEVEL": 7,
+  "EXAMPLE_WORD_LEVEL": 7,
+  "OWN_ENTRY_MIN_PINLU": 48,
+  "commonCharacters": "Unihan kTGHZ2013 (the 8,105 characters of the Tōngyòng Guīfàn Hànzì Biǎo, 2013)",
+  "ranking": "HSK level band of the reading (1–3, 4–6, 7–9, none; complete-hsk-vocabulary, level field only), then the kHanyuPinlu count of the reading (Unihan). Characters that are words on their own are compared by their level as one-character words. An HSK one-character word lends its level to its main reading only."
+ },
+ "counts": {
+  "initials": 22,
+  "finals": 36,
+  "syllables": 416,
+  "syllablesStandard": 412,
+  "syllablesSingleSource": 4,
+  "toneCells": 1469,
+  "toneCellsStandard": 1428,
+  "toneCellsNeutralInWord": 12,
+  "toneCellsSingleSource": 29,
+  "cellsWithCharacter": 1230,
+  "cellsWithFallbackWord": 378,
+  "charactersUnverified": 22,
+  "searchableCharacters": 7781
+ },
+ "offGrid": [
+  {
+   "id": "ê",
+   "tones": [
+    1,
+    2,
+    3,
+    4
+   ],
+   "sources": [
+    "tghz"
+   ],
+   "evidence": [
+    "欸"
+   ]
+  },
+  {
+   "id": "hm",
+   "tones": [
+    5
+   ],
+   "sources": [
+    "cedict",
+    "xhc"
+   ],
+   "evidence": [
+    "噷"
+   ]
+  },
+  {
+   "id": "hng",
+   "tones": [
+    5
+   ],
+   "sources": [
+    "cedict",
+    "tghz",
+    "xhc"
+   ],
+   "evidence": [
+    "哼"
+   ]
+  },
+  {
+   "id": "m",
+   "tones": [
+    1,
+    2,
+    4
+   ],
+   "sources": [
+    "cedict",
+    "tghz",
+    "xhc"
+   ],
+   "evidence": [
+    "呣",
+    "呒",
+    "呒啥",
+    "呒没",
+    "嘸"
+   ]
+  },
+  {
+   "id": "n",
+   "tones": [
+    2,
+    3,
+    4
+   ],
+   "sources": [
+    "pinlu",
+    "xhc"
+   ],
+   "evidence": [
+    "㕶",
+    "嗯",
+    "唔",
+    "𠮾"
+   ]
+  },
+  {
+   "id": "ng",
+   "tones": [
+    2,
+    3,
+    4
+   ],
+   "sources": [
+    "pinlu",
+    "tghz",
+    "xhc"
+   ],
+   "evidence": [
+    "㕶",
+    "嗯",
+    "唔",
+    "𠮾"
+   ]
+  },
+  {
+   "id": "r",
+   "tones": [
+    5
+   ],
+   "sources": [
+    "pinlu"
+   ],
+   "evidence": [
+    "儿",
+    "兒"
+   ]
+  },
+  {
+   "id": "yo",
+   "tones": [
+    1,
+    5
+   ],
+   "sources": [
+    "cedict",
+    "pinlu",
+    "tghz",
+    "xhc"
+   ],
+   "evidence": [
+    "哎唷",
+    "哎哟",
+    "唷",
+    "哟",
+    "喲"
+   ]
+  }
+ ]
+}

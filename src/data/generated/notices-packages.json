@@ -1,0 +1,80 @@
+{
+ "preact": {
+  "version": "11.2.0",
+  "licence": "MIT",
+  "holder": "2015-present Jason Miller",
+  "url": "https://preactjs.com"
+ },
+ "@preact/signals": {
+  "version": "2.11.4",
+  "licence": "MIT",
+  "holder": "2022-present Preact Team",
+  "url": "https://preactjs.com"
+ },
+ "@preact/signals-core": {
+  "version": "1.14.5",
+  "licence": "MIT",
+  "holder": "2022-present Preact Team",
+  "url": "https://preactjs.com"
+ },
+ "idb": {
+  "version": "8.0.4",
+  "licence": "ISC",
+  "holder": "2016, Jake Archibald <jaffathecake@gmail.com>",
+  "url": "https://github.com/jakearchibald/idb"
+ },
+ "fflate": {
+  "version": "0.8.3",
+  "licence": "MIT",
+  "holder": "2026 Arjun Barrett",
+  "url": "https://101arrowz.github.io/fflate"
+ },
+ "workbox-window": {
+  "version": "7.4.1",
+  "licence": "MIT",
+  "holder": "2018 Google LLC",
+  "url": "https://github.com/GoogleChrome/workbox"
+ },
+ "workbox-core": {
+  "version": "7.4.1",
+  "licence": "MIT",
+  "holder": "2018 Google LLC",
+  "url": "https://github.com/GoogleChrome/workbox"
+ },
+ "workbox-precaching": {
+  "version": "7.4.1",
+  "licence": "MIT",
+  "holder": "2018 Google LLC",
+  "url": "https://github.com/GoogleChrome/workbox"
+ },
+ "workbox-routing": {
+  "version": "7.4.1",
+  "licence": "MIT",
+  "holder": "2018 Google LLC",
+  "url": "https://github.com/GoogleChrome/workbox"
+ },
+ "workbox-strategies": {
+  "version": "7.4.1",
+  "licence": "MIT",
+  "holder": "2018 Google LLC",
+  "url": "https://github.com/GoogleChrome/workbox"
+ },
+ "vite-plugin-pwa": {
+  "version": "2.0.0",
+  "licence": "MIT",
+  "holder": "2020-PRESENT Anthony Fu <https://github.com/antfu>",
+  "url": "https://github.com/vite-pwa/vite-plugin-pwa#readme"
+ },
+ "vite": {
+  "version": "8.3.8",
+  "licence": "MIT",
+  "holder": "2019-present, VoidZero Inc. and Vite contributors",
+  "url": "https://vite.dev"
+ },
+ "lucide-preact": {
+  "version": "1.72.0",
+  "licence": "ISC",
+  "holder": "2026 Lucide Icons and Contributors",
+  "url": "https://lucide.dev"
+ }
+}

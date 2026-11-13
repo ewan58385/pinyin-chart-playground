@@ -2,7 +2,7 @@
  * Loaders for the raw source files under .cache/sources/.
  * Nothing here decides anything; it only turns each source into plain data.
  */
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { splitTone, normaliseUmlaut, type Tone } from '../../src/lib/pinyin';
@@ -27,22 +27,6 @@ export const SOURCES = {
     licenceUrl: 'https://www.unicode.org/license.txt',
     author: 'Unicode, Inc.',
   },
-  subtlexChr: {
-    name: 'SUBTLEX-CH character frequencies',
-    url: 'https://www.ugent.be/pp/experimentele-psychologie/en/research/documents/subtlexch/subtlexchchr.zip',
-    homepage: 'https://www.ugent.be/pp/experimentele-psychologie/en/research/documents/subtlexch',
-    licence: 'Free for research and non-commercial use; cite Cai & Brysbaert (2010)',
-    licenceUrl: 'https://doi.org/10.1371/journal.pone.0010729',
-    author: 'Qing Cai and Marc Brysbaert',
-  },
-  subtlexWf: {
-    name: 'SUBTLEX-CH word frequencies',
-    url: 'https://www.ugent.be/pp/experimentele-psychologie/en/research/documents/subtlexch/subtlexchwf.zip',
-    homepage: 'https://www.ugent.be/pp/experimentele-psychologie/en/research/documents/subtlexch',
-    licence: 'Free for research and non-commercial use; cite Cai & Brysbaert (2010)',
-    licenceUrl: 'https://doi.org/10.1371/journal.pone.0010729',
-    author: 'Qing Cai and Marc Brysbaert',
-  },
   hsk: {
     name: 'complete-hsk-vocabulary',
     url: 'https://raw.githubusercontent.com/drkameleon/complete-hsk-vocabulary/main/complete.json',
@@ -61,6 +45,20 @@ export interface Reading {
   tone: Tone;
 }
 export const readingKey = (r: Reading) => `${r.base}${r.tone}`;
+
+// ───────────────────────── versions ─────────────────────────
+
+/** The release of each cached source, read from the files themselves. */
+export function sourceVersions(): Record<string, string> {
+  const cedictHead = readFileSync(join(CACHE, 'cedict', 'cedict.txt'), 'utf8').slice(0, 3000);
+  const unihanHead = readFileSync(join(CACHE, 'unihan', 'Unihan_Readings.txt'), 'utf8').slice(0, 600);
+  const hskPath = join(CACHE, 'hsk', 'complete.json');
+  return {
+    cedict: `release of ${cedictHead.match(/^#! date=(\S+)/m)?.[1].slice(0, 10) ?? 'unknown date'}`,
+    unihan: `Unicode ${unihanHead.match(/^# Unicode Version (\S+)/m)?.[1] ?? '?'}`,
+    hsk: existsSync(hskPath) ? `main branch, retrieved ${statSync(hskPath).mtime.toISOString().slice(0, 10)}` : 'not downloaded',
+  };
+}
 
 // ───────────────────────── CC-CEDICT ─────────────────────────
 
@@ -122,6 +120,8 @@ export interface UnihanChar {
   tghz: Reading[];
   /** kHanyuPinlu: per-reading counts from Xiàndài Hànyǔ Pínlǜ Cídiǎn. */
   pinlu: { reading: Reading; count: number }[];
+  /** Listed in kTGHZ2013, i.e. one of the 8,105 characters of the Tōngyòng Guīfàn Hànzì Biǎo (2013). */
+  standard: boolean;
 }
 
 function unihanReading(marked: string): Reading | null {
@@ -135,7 +135,7 @@ export function loadUnihan(): Map<string, UnihanChar> {
   const map = new Map<string, UnihanChar>();
   const get = (ch: string) => {
     let v = map.get(ch);
-    if (!v) map.set(ch, (v = { mandarin: [], xhc: [], tghz: [], pinlu: [] }));
+    if (!v) map.set(ch, (v = { mandarin: [], xhc: [], tghz: [], pinlu: [], standard: false }));
     return v;
   };
   const uniq = (rs: Reading[]) => [...new Map(rs.map((r) => [readingKey(r), r])).values()];
@@ -153,7 +153,10 @@ export function loadUnihan(): Map<string, UnihanChar> {
         .map(unihanReading)
         .filter((r): r is Reading => !!r);
       if (field === 'kXHC1983') get(ch).xhc = uniq(rs);
-      else get(ch).tghz = uniq(rs);
+      else {
+        get(ch).tghz = uniq(rs);
+        get(ch).standard = true;
+      }
     } else if (field === 'kHanyuPinlu') {
       get(ch).pinlu = value
         .split(/\s+/)
@@ -168,49 +171,23 @@ export function loadUnihan(): Map<string, UnihanChar> {
   return map;
 }
 
-// ───────────────────────── SUBTLEX-CH ─────────────────────────
-
-function readGb(path: string): string[] {
-  return new TextDecoder('gb18030').decode(readFileSync(path)).split(/\r?\n/);
-}
-
-/** Character → { count, rank } (rank 1 = most frequent). */
-export function loadSubtlexChr(): Map<string, { count: number; rank: number }> {
-  const lines = readGb(join(CACHE, 'subtlex-chr', 'SUBTLEX-CH-CHR')).slice(3);
-  const map = new Map<string, { count: number; rank: number }>();
-  let rank = 0;
-  for (const line of lines) {
-    const [ch, count] = line.split('\t');
-    if (!ch || !count) continue;
-    map.set(ch, { count: Number(count), rank: ++rank });
-  }
-  return map;
-}
-
-/** Word → corpus count (33.5M-word film subtitle corpus). */
-export function loadSubtlexWf(): Map<string, number> {
-  const lines = readGb(join(CACHE, 'subtlex-wf', 'SUBTLEX-CH-WF')).slice(3);
-  const map = new Map<string, number>();
-  for (const line of lines) {
-    const [w, count] = line.split('\t');
-    if (!w || !count) continue;
-    map.set(w, Number(count));
-  }
-  return map;
-}
-
 // ───────────────────────── HSK ─────────────────────────
 
+/**
+ * Only the word and its HSK level(s) are read. The list's other fields
+ * (frequency, part of speech, radical) come from other sources and are not used.
+ */
 export interface HskWord {
   simplified: string;
   level: string[];
-  frequency: number;
 }
 
 export function loadHsk(): Map<string, HskWord> {
   const path = join(CACHE, 'hsk', 'complete.json');
   const map = new Map<string, HskWord>();
   if (!existsSync(path)) return map;
-  for (const w of JSON.parse(readFileSync(path, 'utf8')) as HskWord[]) map.set(w.simplified, w);
+  for (const w of JSON.parse(readFileSync(path, 'utf8')) as { simplified: string; level: string[] }[]) {
+    map.set(w.simplified, { simplified: w.simplified, level: w.level });
+  }
   return map;
 }

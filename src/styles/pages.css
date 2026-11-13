@@ -241,3 +241,78 @@
   margin: 8px 0 16px;
   color: var(--ink-2);
 }
+
+/* ── Credits and licences ── */
+.back-link {
+  font-size: 14px;
+}
+.back-link a {
+  color: var(--ink-2);
+}
+.credit-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+.credit {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--rule);
+  line-height: 1.5;
+}
+.credit h3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-weight: 600;
+}
+.credit h3 small {
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 400;
+  color: var(--ink-3);
+}
+.credit p {
+  margin-top: 2px;
+  max-width: 68ch;
+  overflow-wrap: anywhere;
+}
+.credit .credit-for {
+  color: var(--ink-2);
+}
+.credit details {
+  margin-top: 6px;
+}
+.credit summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  font-size: 14px;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.credit summary:focus-visible,
+.credit pre:focus-visible {
+  outline: var(--focus);
+  outline-offset: 2px;
+}
+.credit pre {
+  max-height: 320px;
+  overflow: auto;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+@media (pointer: coarse) {
+  .credit summary {
+    min-height: 44px;
+  }
+}

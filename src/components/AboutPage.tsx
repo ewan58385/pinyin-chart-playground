@@ -7,25 +7,8 @@ const Ext = ({ href, children }: { href: string; children: preact.ComponentChild
   </a>
 );
 
-/** What each data set is credited for. */
-const CREDIT_FOR: Record<string, string> = {
-  cedict: 'Example characters, meanings and example words',
-  unihan: 'Pronunciations of characters',
-  subtlexChr: 'How common each character is',
-  subtlexWf: 'How common each word is',
-  hsk: 'Word lists by HSK level',
-};
-
 const n = (x: number) => x.toLocaleString('en-GB');
-
-const FONTS: { name: string; href: string; by: string }[] = [
-  { name: 'Source Serif 4', href: 'https://github.com/adobe-fonts/source-serif', by: 'the Source Serif 4 Project Authors' },
-  { name: 'Source Sans 3', href: 'https://github.com/adobe-fonts/source-sans', by: 'Adobe' },
-  { name: 'Literata', href: 'https://github.com/googlefonts/literata', by: 'the Literata Project Authors' },
-  { name: 'Inter', href: 'https://github.com/rsms/inter', by: 'the Inter Project Authors' },
-  { name: 'Noto Serif and Noto Sans', href: 'https://github.com/notofonts/latin-greek-cyrillic', by: 'the Noto Project Authors' },
-  { name: 'Source Han Serif and Source Han Sans', href: 'https://github.com/adobe-fonts/source-han-serif', by: 'Adobe' },
-];
+const audio = Object.values(AUDIO_SOURCES)[0];
 
 export function AboutPage() {
   const c = DATA_META.counts;
@@ -127,53 +110,18 @@ export function AboutPage() {
 
       <section>
         <h2>Credits</h2>
-        <dl class="sources">
-          {Object.entries(AUDIO_SOURCES).map(([key, s]) => (
-            <div key={key}>
-              <dt>Native recordings</dt>
-              <dd>
-                Spoken by {s.speaker}, from {s.url !== 'UNKNOWN' ? <Ext href={s.url}>{s.name}</Ext> : s.name} by {s.author}. {s.copyright.replace(/^Copyright©\s*/, '© ')}.
-                Licence: {s.licenceUrl !== 'UNKNOWN' ? <Ext href={s.licenceUrl}>{s.licence}</Ext> : s.licence}. The recordings in this app have been trimmed and
-                their volume evened out; these versions are shared under the same licence.
-              </dd>
-            </div>
-          ))}
-          {Object.entries(DATA_META.sources).map(([key, s]) => (
-            <div key={key}>
-              <dt>{CREDIT_FOR[key] ?? s.name}</dt>
-              <dd>
-                <Ext href={s.homepage}>{s.name}</Ext>, by {s.author}. Licence: <Ext href={s.licenceUrl}>{s.licence}</Ext>.
-                {key === 'cedict' && ' The example data in this app is adapted from it and shared under the same licence.'}
-                {key === 'subtlexChr' && ' Cai, Q. & Brysbaert, M. (2010), PLoS ONE 5(6): e10729.'}
-              </dd>
-            </div>
-          ))}
-          <div>
-            <dt>Hear it on Forvo</dt>
-            <dd>
-              The “Hear it on Forvo” links open <Ext href="https://forvo.com/languages/zh/">forvo.com</Ext>, a separate website with recordings from its own
-              community.
-            </dd>
-          </div>
-          <div>
-            <dt>Typefaces</dt>
-            <dd>
-              {FONTS.map((f, i) => (
-                <>
-                  {i > 0 && (i === FONTS.length - 1 ? ' and ' : ', ')}
-                  <Ext href={f.href}>{f.name}</Ext> by {f.by}
-                </>
-              ))}
-              , all under the SIL Open Font License 1.1. The copies in this app contain only the characters it uses and are renamed, as the licence requires.
-            </dd>
-          </div>
-          <div>
-            <dt>Icons</dt>
-            <dd>
-              <Ext href="https://lucide.dev">Lucide</Ext>, ISC licence.
-            </dd>
-          </div>
-        </dl>
+        <p>
+          The native recordings are by {audio.speaker} ({audio.name}). Meanings, example words and readings come from
+          CC-CEDICT and the Unicode Han Database, and HSK levels from complete-hsk-vocabulary. The recordings and the example data are shared under
+          Creative Commons Attribution-ShareAlike.
+        </p>
+        <p>
+          <a href="#/credits">Credits and licences</a>: every source, font, icon set and library in the app, with its licence.
+        </p>
+        <p class="hint">
+          The “Hear it on Forvo” links open <Ext href="https://forvo.com/languages/zh/">forvo.com</Ext>, a separate website with recordings from its own
+          community.
+        </p>
       </section>
     </article>
   );

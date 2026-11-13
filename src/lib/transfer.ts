@@ -19,6 +19,8 @@ import { CELLS, TONE_CELL, hasNativeAudio } from '../data';
 import { toAscii } from './pinyin';
 import { getNativeBlob } from './audio';
 import { resolveExample, toneNotes, statuses } from './store';
+import { attributionText, LICENCES_CHECKED_ON } from '../data/credits';
+import { OPEN_DATA_URL } from '../config';
 
 export const EXPORT_FORMAT = 'pinyin-chart-export';
 /**
@@ -281,6 +283,20 @@ export async function buildAnkiExport(cellIds: string[]): Promise<{ bytes: Uint8
       '   Map them to the fields of a note type of your choice.',
       '2. Copy every file in the media folder into your Anki collection.media folder',
       '   (Tools > Check Media shows where it is). The Audio column refers to them by name.',
+      '',
+      'Credits and licences',
+      '',
+      'The meanings, example words and readings in cards.csv are adapted from CC-CEDICT, and the',
+      'audio files are adapted from the audio-cmn syllable recordings. Both are licensed under',
+      'Creative Commons Attribution-ShareAlike, so this export is shared under the same licence:',
+      'CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/) for the text from CC-CEDICT,',
+      'and CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/) for the recordings.',
+      'Your own notes in the "My notes" column are yours.',
+      ...(OPEN_DATA_URL ? ['', `The full data and recordings: ${OPEN_DATA_URL}`] : []),
+      '',
+      ...attributionText(['cedict', 'audio', 'unihan', 'hsk']),
+      '',
+      `(Licences as checked on ${LICENCES_CHECKED_ON}.)`,
       '',
     ].join('\n'),
   );

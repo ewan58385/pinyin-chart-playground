@@ -14,7 +14,9 @@
     "data:audio": "tsx scripts/build-audio.ts",
     "data:fonts": "python3 scripts/build-fonts.py",
     "data:icons": "python3 scripts/build-icons.py",
-    "data:all": "npm run data:sources && npm run data:build && npm run data:audio && npm run data:fonts"
+    "data:notices": "tsx scripts/build-notices.ts",
+    "data:open": "tsx scripts/build-open-data.ts",
+    "data:all": "npm run data:sources && npm run data:build && npm run data:audio && npm run data:fonts && npm run data:notices && npm run data:open"
   },
   "dependencies": {
     "@preact/signals": "^2.11.4",

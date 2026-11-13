@@ -13,6 +13,7 @@ import { LearnPage } from './components/LearnPage';
 import { crumbsFor, hasPanel } from './lib/routes';
 
 import { AboutPage } from './components/AboutPage';
+import { CreditsPage } from './components/CreditsPage';
 import { route } from './lib/router';
 import { filtersOpen, memoryOnly, ready, settings, toast } from './lib/store';
 import { online } from './lib/viewport';
@@ -65,6 +66,7 @@ export function App() {
           {page === 'data' && <DataPage />}
           {page === 'settings' && <SettingsPage />}
           {page === 'about' && <AboutPage />}
+          {page === 'credits' && <CreditsPage />}
         </main>
       )}
       <TabBar />

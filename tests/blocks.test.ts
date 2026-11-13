@@ -38,7 +38,7 @@ describe('routes', () => {
     for (const h of [
       '#/', '#/s/zhi', '#/s/zhi/1', '#/finals', '#/initials', '#/finals/e', '#/finals/v/l%C3%BC/4', '#/initials/palatal/ji/2',
       '#/browse', '#/browse/nasal', '#/browse/umlaut-u/ju/1', '#/learn', '#/learn/simple-easy', '#/learn/neutral/de/5',
-      '#/data', '#/settings', '#/about',
+      '#/data', '#/settings', '#/about', '#/credits',
     ]) {
       const r = parseHash(h);
       expect(parseHash(hashFor(r)), h).toEqual(r);

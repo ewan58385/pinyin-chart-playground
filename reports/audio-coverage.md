@@ -4,16 +4,17 @@ Generated 2026-11-13 by `scripts/build-audio.ts`. Do not edit by hand.
 
 ## Source
 
-- Audio-cmn, syllables set (collection tag `zh_syllabs`), from the local folder `.cache/sources/audio-cmn/syllabs` (not committed).
-- Speaker: Chen Wang 王琛. Authors: Wang Chen, Lopez Hugo, Vion Nicolas. Copyright© 2013 Wang Chen, Lopez Hugo, Vion Nicolas.
-- Licence: CC-BY-SA-3.0 (https://creativecommons.org/licenses/by-sa/3.0/). Web address of the set: UNKNOWN.
+- audio-cmn, syllables set (syllabs v.2) (collection tag `zh_syllabs`), from the local folder `.cache/sources/audio-cmn/syllabs` (not committed).
+- Speaker: Chen Wang 王琛. Authors: Chen Wang 王琛 (speaker); Hugo Lopez, PLIDAM, INALCO (project management, repository, audio compression, file renaming); Nicolas Vion (recording software). Copyright© 2013 Wang Chen, Lopez Hugo, Vion Nicolas.
+- Licence: CC-BY-SA-3.0 as stated in each file's metadata (https://creativecommons.org/licenses/by-sa/3.0/). The repository README states the licence as "CC-by-sa" with no version, and the repository has no LICENSE file. Each recording's own metadata (SWAC_COLL_LICENSE) states "CC-BY-SA-3.0". Repository: https://github.com/hugolpz/audio-cmn.
+- Changes made to every clip: Trimmed to the syllable, high-pass filtered (70 Hz), levelled to a common loudness, faded in and out, and converted to mono 24 kHz MP3 at 48 kbit/s.
 - Folder contents: 1707 MP3 files and README.md.
 - Speakers named in the file tags: Chen Wang 王琛 (1703 files); 4 files carry no tags (cmn-_hm1.mp3, cmn-lo1.mp3, cmn-peng3.mp3, cmn-zang3.mp3). Used: Chen Wang 王琛, the speaker with the most chart cells covered.
 
 ## Coverage
 
-- Clips written: **1302** of 1476 tone cells (5.5 MB, 48k mono MP3 at 24000 Hz). By tone: tone 1: 343, tone 2: 270, tone 3: 329, tone 4: 360, tone 5: 0.
-- Visible tone cells with no audio: **166** (tone 1: 0, tone 2: 0, tone 3: 0, tone 4: 0, tone 5: 166).
+- Clips written: **1302** of 1469 tone cells (5.5 MB, 48k mono MP3 at 24000 Hz). By tone: tone 1: 343, tone 2: 270, tone 3: 329, tone 4: 360, tone 5: 0.
+- Visible tone cells with no audio: **159** (tone 1: 0, tone 2: 0, tone 3: 0, tone 4: 0, tone 5: 159).
 - Hidden single-source cells with no audio: 8.
 - Clip lengths 310–1400 ms (median 620 ms); peaks -15.4 to -1.4 dBFS, loud part levelled to -20 dB RMS.
 
@@ -40,7 +41,7 @@ Every clip is checked for: speech between 0.12 and 1.3 s; a single utterance (no
 - **Tone 2** (0): none
 - **Tone 3** (0): none
 - **Tone 4** (0): none
-- **Tone 5** (166): a5, e5, yi5, ya5, ye5, you5, yang5, yin5, ying5, yong5, wu5, wa5, wei5, wang5, yu5, yue5, ba5, bai5, bao5, ban5, bei5, bo5, bian5, bing5, bu5, pai5, pao5, peng5, po5, ma5, mai5, mao5, me5, mei5, men5, mo5, mian5, ming5, mu5, fa5, fan5, fang5, fen5, fu5, da5, dai5, dao5, dan5, dang5, de5, di5, du5, duo5, tai5, tao5, tan5, tang5, teng5, tong5, tou5, ti5, tiao5, ting5, tu5, tuo5, na5, nai5, nao5, nan5, ne5, nong5, niu5, niang5, nü5, la5, lai5, le5, lei5, lo5, long5, lou5, li5, lie5, liang5, ling5, lu5, luo5, zai5, zan5, zi5, zui5, cai5, ceng5, cun5, sao5, sou5, si5, su5, suo5, zha5, zhan5, zhang5, zhe5, zheng5, zhou5, zhi5, zhu5, zhui5, zhuan5, chang5, che5, chen5, cheng5, chou5, chu5, shao5, shang5, shen5, sheng5, shou5, shi5, shu5, shuo5, rang5, ren5, ji5, jia5, jie5, jiu5, jian5, jiang5, jing5, ju5, qi5, qian5, qin5, qing5, qu5, xi5, xia5, xie5, xian5, xin5, xing5, xiong5, xu5, xun5, gai5, gang5, ge5, gong5, gu5, guo5, guang5, kan5, kou5, kuai5, hai5, hao5, he5, hou5, hu5, hua5, huo5, huan5, huang5
+- **Tone 5** (159): a5, e5, yi5, ya5, ye5, you5, yang5, yin5, ying5, yong5, wu5, wa5, wei5, wang5, yu5, yue5, ba5, bai5, bao5, ban5, bei5, bo5, bian5, bing5, bu5, peng5, po5, ma5, mai5, mao5, me5, mei5, men5, mo5, mian5, ming5, mu5, fa5, fan5, fang5, fen5, feng5, fu5, da5, dai5, dao5, dan5, dang5, de5, di5, du5, duo5, tai5, tao5, tan5, tang5, teng5, tong5, tou5, ti5, tiao5, ting5, tu5, tuo5, na5, nai5, nao5, nan5, ne5, niu5, niang5, nü5, la5, lai5, lao5, le5, lei5, lo5, long5, lou5, li5, lie5, liang5, ling5, lu5, luo5, zai5, zan5, zi5, zui5, cai5, cun5, sao5, sou5, si5, su5, suo5, zha5, zhan5, zhang5, zhe5, zheng5, zhou5, zhi5, zhu5, zhui5, chang5, che5, chen5, cheng5, chou5, chu5, shao5, shang5, shen5, sheng5, shou5, shi5, shu5, ren5, ji5, jia5, jie5, jiu5, jian5, jiang5, jing5, ju5, qi5, qian5, qin5, qing5, qu5, xi5, xia5, xie5, xian5, xin5, xing5, xiong5, xu5, xun5, gai5, gang5, ge5, gong5, gu5, guo5, kou5, kuai5, hai5, hao5, he5, hou5, hu5, hua5, huo5, huan5, huang5
 
 ## Untagged source files
 

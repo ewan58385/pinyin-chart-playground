@@ -1,0 +1,181 @@
+Pinyin Chart open data
+
+This folder contains material adapted from works licensed under Creative Commons
+Attribution-ShareAlike. The adaptations are shared under the same licences:
+
+- data/ (meanings, example words, readings and syllable lists adapted from CC-CEDICT):
+  CC BY-SA 4.0, https://creativecommons.org/licenses/by-sa/4.0/
+- audio/ and audio-manifest.json (recordings adapted from audio-cmn, syllables set (syllabs v.2)):
+  CC-BY-SA-3.0, https://creativecommons.org/licenses/by-sa/3.0/
+  The repository README states the licence as "CC-by-sa" with no version, and the repository has no LICENSE file. Each recording's own metadata (SWAC_COLL_LICENSE) states "CC-BY-SA-3.0".
+
+The data also uses readings and counts from the Unicode Han Database (Unicode License v3)
+and HSK levels from complete-hsk-vocabulary and its sources (MIT); their licence notices
+are reproduced at the end of this file.
+
+Attribution
+
+audio-cmn, syllables set (syllabs v.2): the native recording of every syllable and tone.
+  By Chen Wang 王琛 (speaker); Hugo Lopez, PLIDAM, INALCO (project management, repository, audio compression, file renaming); Nicolas Vion (recording software). Licence: CC-BY-SA-3.0 (https://creativecommons.org/licenses/by-sa/3.0/). https://github.com/hugolpz/audio-cmn
+  © 2013 Wang Chen, Lopez Hugo, Vion Nicolas.
+  The repository README states the licence as "CC-by-sa" with no version, and the repository has no LICENSE file. Each recording's own metadata (SWAC_COLL_LICENSE) states "CC-BY-SA-3.0".
+  Changes made for this app: Trimmed to the syllable, high-pass filtered (70 Hz), levelled to a common loudness, faded in and out, and converted to mono 24 kHz MP3 at 48 kbit/s. These adapted recordings are shared under the same licence.
+  Only the syllable recordings are used; the project’s separate set of HSK word recordings is not.
+CC-CEDICT (release of 2026-11-11): example characters, meanings, example words and readings.
+  By MDBG and CC-CEDICT contributors; based on CEDICT © 1997, 1998 Paul Andrew Denisowski. Licence: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/). https://www.mdbg.net/chinese/dictionary?page=cc-cedict
+  Changes made for this app: meanings shortened, a few senses reordered, and example words selected. The example data in this app is adapted from CC-CEDICT and shared under the same licence.
+Unicode Han Database (Unihan) (Unicode 18.0.0): readings of characters, how often each reading is used, and the list of standard characters.
+  By Unicode, Inc. Licence: Unicode License v3 (https://www.unicode.org/license.txt). https://www.unicode.org/reports/tr38/
+complete-hsk-vocabulary (main branch, retrieved 2026-11-13): the HSK level of each word (the level only).
+  By Yanis Zafirópulos (drkameleon). Licence: MIT (https://github.com/drkameleon/complete-hsk-vocabulary/blob/main/LICENSE). https://github.com/drkameleon/complete-hsk-vocabulary
+hsk-vocabulary: levels of the earlier HSK (via complete-hsk-vocabulary).
+  By Clement Venard. Licence: MIT. https://github.com/clem109/hsk-vocabulary
+hanyu-shuiping-kaoshi: levels of the earlier HSK (via hsk-vocabulary).
+  By gigacool. Licence: MIT. https://github.com/gigacool/hanyu-shuiping-kaoshi
+hsk30: levels of HSK 3.0 (via complete-hsk-vocabulary), taken from the official HSK 3.0 standard.
+  By Pleco Inc. Licence: MIT. https://github.com/elkmovie/hsk30
+
+Licences as checked on 2026-11-13.
+
+----------------------------------------------------------------------
+Unicode Han Database (Unihan)
+
+UNICODE LICENSE V3
+
+COPYRIGHT AND PERMISSION NOTICE
+
+Copyright © 1991-2026 Unicode, Inc.
+
+NOTICE TO USER: Carefully read the following legal agreement. BY
+DOWNLOADING, INSTALLING, COPYING OR OTHERWISE USING DATA FILES, AND/OR
+SOFTWARE, YOU UNEQUIVOCALLY ACCEPT, AND AGREE TO BE BOUND BY, ALL OF THE
+TERMS AND CONDITIONS OF THIS AGREEMENT. IF YOU DO NOT AGREE, DO NOT
+DOWNLOAD, INSTALL, COPY, DISTRIBUTE OR USE THE DATA FILES OR SOFTWARE.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of data files and any associated documentation (the "Data Files") or
+software and any associated documentation (the "Software") to deal in the
+Data Files or Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, and/or sell
+copies of the Data Files or Software, and to permit persons to whom the
+Data Files or Software are furnished to do so, provided that either (a)
+this copyright and permission notice appear with all copies of the Data
+Files or Software, or (b) this copyright and permission notice appear in
+associated Documentation.
+
+THE DATA FILES AND SOFTWARE ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
+THIRD PARTY RIGHTS.
+
+IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS INCLUDED IN THIS NOTICE
+BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT OR CONSEQUENTIAL DAMAGES,
+OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THE DATA
+FILES OR SOFTWARE.
+
+Except as contained in this notice, the name of a copyright holder shall
+not be used in advertising or otherwise to promote the sale, use or other
+dealings in these Data Files or Software without prior written
+authorization of the copyright holder.
+
+----------------------------------------------------------------------
+complete-hsk-vocabulary
+
+MIT License
+
+Copyright (c) 2026 Yanis Zafirópulos
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+----------------------------------------------------------------------
+hsk-vocabulary
+
+MIT License
+
+Copyright (c) 2018 Clement Venard
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+----------------------------------------------------------------------
+hanyu-shuiping-kaoshi
+
+MIT License
+
+Copyright (c) 2018 gigacool
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+----------------------------------------------------------------------
+hsk30
+
+MIT License
+
+Copyright (c) 2021 Pleco Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
