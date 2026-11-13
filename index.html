@@ -34,8 +34,24 @@
     </script>
   </head>
   <body>
-    <div id="app"></div>
-    <noscript>This chart needs JavaScript to run.</noscript>
+    <div id="app">
+      <!-- Shown until the app replaces it, so the screen is never blank. Styled inline: the stylesheet may not have loaded. -->
+      <div style="max-width: 32rem; margin: 0 auto; padding: 48px 20px; font: 16px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif">
+        <p style="margin: 0">Pinyin Chart is starting…</p>
+        <p id="boot-slow" hidden style="margin: 12px 0 0">
+          This is taking longer than it should.
+          <button type="button" onclick="location.reload()" style="margin-left: 6px; min-height: 44px; padding: 0 16px; font: inherit; cursor: pointer">Reload</button>
+        </p>
+      </div>
+    </div>
+    <script>
+      // If the app has not replaced the notice above after a few seconds, offer a reload.
+      setTimeout(function () {
+        var slow = document.getElementById('boot-slow');
+        if (slow && !document.querySelector('.app')) slow.hidden = false;
+      }, 8000);
+    </script>
+    <noscript>Pinyin Chart needs JavaScript to run. Turn it on in your browser settings, then reload the page.</noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

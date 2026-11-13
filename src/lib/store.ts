@@ -81,14 +81,39 @@ export const DEFAULT_SETTINGS: Settings = {
 /** How a tone cell's pinyin is written under the current setting: mā or ma1. */
 export const showTone = (t: { display: string; numeric: string }) => (settings.value.toneNumbers ? t.numeric : t.display);
 
+/** The values a setting may take, where it is a fixed choice. Anything else falls back to the default. */
+const CHOICES: Partial<Record<keyof Settings, readonly unknown[]>> = {
+  density: ['auto', 'compact', 'full'],
+  theme: ['system', 'light', 'dark'],
+  rate: [0.75, 1],
+  pitchMode: ['relative', 'hz'],
+  cjk: ['serif', 'sans'],
+  textSize: [0, 1, 2, 3],
+  spacing: ['compact', 'comfortable', 'spacious'],
+  toneColours: ['off', 'standard', 'safe'],
+  cellBorders: ['hairline', 'none', 'ruled'],
+};
+
 /**
- * Stored settings laid over the defaults. Only names this version knows are
- * taken, so a setting left behind by an earlier release (a removed feature)
- * is ignored instead of leaking into the app.
+ * Stored settings laid over the defaults. Never throws: rows that are not
+ * objects, names this version does not know (a removed feature, such as the
+ * old accent choice), values of the wrong type, and values outside a fixed
+ * choice are all ignored, so whatever is in storage, the app starts.
  */
-export function settingsFrom(rows: { name: string; value: unknown }[]): Settings {
+export function settingsFrom(rows: unknown): Settings {
   const out: Record<string, unknown> = { ...DEFAULT_SETTINGS };
-  for (const r of rows) if (r.name in DEFAULT_SETTINGS && typeof r.value === typeof (DEFAULT_SETTINGS as unknown as Record<string, unknown>)[r.name]) out[r.name] = r.value;
+  if (!Array.isArray(rows)) return out as unknown as Settings;
+  const defaults = DEFAULT_SETTINGS as unknown as Record<string, unknown>;
+  for (const row of rows) {
+    if (!row || typeof row !== 'object') continue;
+    const { name, value } = row as { name?: unknown; value?: unknown };
+    if (typeof name !== 'string' || !Object.prototype.hasOwnProperty.call(defaults, name)) continue;
+    if (typeof value !== typeof defaults[name]) continue;
+    if (typeof value === 'number' && !Number.isFinite(value)) continue;
+    const allowed = CHOICES[name as keyof Settings];
+    if (allowed && !allowed.includes(value)) continue;
+    out[name] = value;
+  }
   return out as unknown as Settings;
 }
 
@@ -118,21 +143,35 @@ export function notify(text: string, kind: 'info' | 'error' = 'info') {
 
 const byKey = <T,>(rows: T[], key: keyof T): Record<string, T> => Object.fromEntries(rows.map((r) => [r[key] as string, r]));
 
+/** Every row of a store, or none if the store cannot be read: startup must not fail on storage. */
+async function rowsOf<T>(store: db.StoreName, valid: (row: T) => boolean): Promise<T[]> {
+  try {
+    const rows = await db.getAll<T>(store);
+    return Array.isArray(rows) ? rows.filter((r) => !!r && typeof r === 'object' && valid(r)) : [];
+  } catch (err) {
+    console.warn(`Could not read ${store}:`, err);
+    return [];
+  }
+}
+
 export async function loadUserData(): Promise<void> {
+  const hasCell = (r: { cell?: unknown }) => typeof r.cell === 'string';
   const [st, tn, ov, rec, se] = await Promise.all([
-    db.getAll<db.StatusRecord>('status'),
-    db.getAll<ToneNote>('toneNotes'),
-    db.getAll<Override>('overrides'),
-    db.getAll<RecordingMeta>('recordings'),
-    db.getAll<db.SettingRecord>('settings'),
+    rowsOf<db.StatusRecord>('status', hasCell),
+    rowsOf<ToneNote>('toneNotes', hasCell),
+    rowsOf<Override>('overrides', hasCell),
+    rowsOf<RecordingMeta>('recordings', (r) => typeof r.id === 'string' && typeof r.cell === 'string'),
+    rowsOf<db.SettingRecord>('settings', () => true),
   ]);
   statuses.value = Object.fromEntries(st.map((r) => [r.cell, r.status]));
   toneNotes.value = byKey(tn, 'cell');
   overrides.value = byKey(ov, 'cell');
-  recordings.value = rec.sort((a, b) => a.createdAt - b.createdAt);
+  recordings.value = rec.sort((a, b) => (a.createdAt ?? 0) - (b.createdAt ?? 0));
   settings.value = settingsFrom(se);
   // Rows left by removed settings (an old accent choice, for example) are ignored above and deleted here.
-  for (const r of se) if (!(r.name in DEFAULT_SETTINGS)) void db.remove('settings', r.name).catch(() => {});
+  for (const r of se) {
+    if (typeof r.name === 'string' && !Object.prototype.hasOwnProperty.call(DEFAULT_SETTINGS, r.name)) void db.remove('settings', r.name).catch(() => {});
+  }
   memoryOnly.value = db.usingMemoryFallback;
   ready.value = true;
 }

@@ -28,7 +28,9 @@ Either host works. Both give you HTTPS, which recording and offline use require.
 
 1. Create a repository on GitHub and push this folder to its `main` branch.
 2. In the repository, open **Settings → Pages** and set **Source** to **GitHub Actions**.
-3. The included workflow (`.github/workflows/deploy.yml`) runs on every push to `main`: it runs the tests, builds, and publishes `dist/`.
+3. The included workflow (`.github/workflows/deploy.yml`) runs on every push to `main`: it runs the tests, builds, publishes `dist/`, then loads the published page and fails the run if it is not the built app.
+
+   If Source is left at **Deploy from a branch**, GitHub also publishes the repository itself on every push. Its `index.html` points at `/src/main.tsx`, which only exists in development, so whenever that deployment finishes after the workflow's, the site shows only "Pinyin Chart is starting…". The workflow's last step catches this; the fix is to set Source to **GitHub Actions** and re-run the workflow.
 4. The site appears at `https://<your-username>.github.io/<repository-name>/`.
 
 The workflow sets `BASE_PATH=/<repository-name>/` so asset URLs resolve under that path. For a user site (`<name>.github.io`) or a custom domain, change `BASE_PATH` to `/` in the workflow. Pages on a private repository needs a paid GitHub plan.

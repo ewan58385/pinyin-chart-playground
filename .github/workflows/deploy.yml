@@ -44,6 +44,35 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
         uses: actions/deploy-pages@v5
+
+  # If Settings > Pages > Source is "Deploy from a branch", GitHub also publishes the
+  # unbuilt repository on every push, and whichever deployment finishes last is what
+  # visitors get: the raw index.html loads /src/main.tsx, which does not exist, so the
+  # page is blank. This fails the run loudly when that happens.
+  verify:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check that the site serves the build
+        env:
+          PAGE_URL: ${{ needs.deploy.outputs.page_url }}
+        run: |
+          for attempt in 1 2 3 4 5 6; do
+            sleep 20
+            html="$(curl -fsSL "${PAGE_URL}?deploy-check=${GITHUB_SHA}" || true)"
+            if echo "$html" | grep -q 'assets/index-'; then
+              echo "The site serves the built app."
+              built=1
+            else
+              built=0
+            fi
+          done
+          if [ "$built" != 1 ]; then
+            echo "::error::GitHub Pages is not serving the built app (it may be publishing the repository itself). In Settings > Pages > Build and deployment, set Source to 'GitHub Actions', then re-run this workflow."
+            exit 1
+          fi

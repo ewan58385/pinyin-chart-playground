@@ -8,7 +8,9 @@ Offline-first PWA: interactive Mandarin pinyin chart (Vite + TypeScript + Preact
 
 ## State
 
-As of 2026-11-13: `main` = `origin/main` at commit 6e0926e (Round 6). Round 7 is done in the working tree, **uncommitted**: tab bar pinned at every text size (zoom-corrected viewport tokens), reset also clears downloaded audio, backup Share button removed and Replace ticked by default, Finals overview as tiles, new Learn caption. Browser checks: `.cache/screenshots/round7/results.txt`. The user's screenshots (`*.png` in the root) are untracked.
+As of 2026-11-13: `main` = `origin/main` at a366e0c (Round 7). Round 8 (blank deployed site) is done in the working tree, **uncommitted**: startup error boundary, static "starting" notice in index.html, hardened settings parsing and data loading, a post-deploy check in the workflow. Browser checks: `.cache/screenshots/round8/`.
+
+**Deployment problem (needs the user):** GitHub Pages' Source is "Deploy from a branch", so every push also runs GitHub's own "pages build and deployment", which publishes the unbuilt repo (index.html → /src/main.tsx, 404 → blank). It races the Actions deploy; at a366e0c it finished 2 s later and won. Fix: Settings → Pages → Source: GitHub Actions, then re-run "Deploy to GitHub Pages". The workflow's `verify` job now fails if the live page is not the build. The user's screenshots (`*.png` in the root) are untracked.
 
 Open questions for the user:
 - The audio set's web address is UNKNOWN (not in the folder or its tags); fill `url` in `scripts/build-audio.ts` if it is known, then rerun `npm run data:audio`.
@@ -48,6 +50,8 @@ npx tsx scripts/diagnose-pitch.ts         # writes reports/pitch-diagnosis.md
 - **Backup and restore** (`src/lib/transfer.ts`, near the foot of My data): one zip = `data.json` + `recordings/<id>.<ext>`; merge by newest `updatedAt`; tested end to end against fake-indexeddb in `tests/db.test.ts`.
 - **Appearance:** tokens are set on `<html>` by `src/lib/theme.ts` from `src/data/themes.ts`; `tests/contrast.test.ts` enforces WCAG AA. The accent is fixed vermilion (`ACCENT` in themes.ts); presets change only the paper and ink.
 - **Text size = CSS zoom on `.app`.** Inside it every length is multiplied by the zoom, so never write `dvh`, `vw` or `env(safe-area-inset-*)` in CSS: use `calc(N * var(--vh))`, `var(--vw)`, `var(--safe-top|right|bottom|left)` from base.css, which divide by `--text-scale`. That keeps the frame at the viewport and the tab bar flush at every size.
+- **Startup must never be blank:** index.html ships a plain "starting…" notice in `#app` (Reload offered after 8 s if the app has not mounted); main.tsx clears it and renders inside `ErrorBoundary` (`StartupError.tsx`); `loadUserData` reads each store defensively and `settingsFrom` accepts anything (unknown names, inherited names like `toString`, wrong types, values outside a fixed choice are dropped). Tested in `tests/settings.test.ts`.
+- Browser testing: a Chrome headless shell can be fetched with `npx @puppeteer/browsers install chrome-headless-shell@stable` (the system `chromium-browser` is only a snap stub). Start preview servers with `node node_modules/vite/bin/vite.js preview` and kill that process: killing an `npx` wrapper leaves vite running.
 - **Restore** defaults to replace (checkbox ticked on every visit, confirm step names what is deleted); unticked it merges. No share-sheet path: `deliverFile` is a plain download.
 - **Segmented controls** (`.seg` in base.css): equal-width grid columns, a hairline before every option, the selected option inset. In Settings they span the row, labels wrap, and they stack below a 250px container width.
 - **Card key:** `CardLegend` in `SyllableCard.tsx` is the one legend for syllable cards (group and Browse pages); its sample boxes reuse the `.tone-btn` classes.

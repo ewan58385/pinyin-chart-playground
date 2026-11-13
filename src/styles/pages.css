@@ -225,3 +225,19 @@
     min-height: 44px;
   }
 }
+
+/* ── Shown instead of a blank screen if the app fails to start ── */
+.startup-error {
+  max-width: 32rem;
+  margin: 0 auto;
+  padding: 48px 20px;
+}
+.startup-error h1 {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 600;
+}
+.startup-error p {
+  margin: 8px 0 16px;
+  color: var(--ink-2);
+}
