@@ -16,8 +16,8 @@ import {
 } from '../lib/store';
 import { cacheSupported, cachedCount, clearAudioCache, downloadAll, downloadState, stopDownloadAll, totalClipCount } from '../lib/audio';
 import { applyImport, buildAnkiExport, buildExport, deliverFile, type ImportSummary } from '../lib/transfer';
-import { narrow, online } from '../lib/viewport';
-import { Download, Upload, Share, WifiOff, Trash } from './icons';
+import { online } from '../lib/viewport';
+import { Download, Upload, WifiOff, Trash } from './icons';
 
 const mb = (bytes: number) => (bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`);
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
@@ -43,7 +43,7 @@ function ResetApp({ onExport, exporting }: { onExport: () => void; exporting: bo
     try {
       await resetAllData();
       setStep('idle');
-      notify('Everything on this device has been deleted. The app is as new.');
+      notify('Your data and downloaded audio have been deleted. The app is as new.');
       document.querySelector<HTMLElement>('.page h1')?.focus();
     } catch (err) {
       setStep('confirm');
@@ -55,8 +55,8 @@ function ResetApp({ onExport, exporting }: { onExport: () => void; exporting: bo
     <section class="reset" aria-labelledby="reset-title">
       <h2 id="reset-title">Reset app</h2>
       <p>
-        Delete everything you have added on this device: statuses and Learn progress, notes, your recordings, edited characters and settings. The app goes back
-        to how it was the first time you opened it. Downloaded native recordings are kept.
+        Delete your notes, progress, recordings, edited characters, settings and downloaded audio from this device. The app goes back to how it was the
+        first time you opened it.
       </p>
       {step === 'idle' ? (
         <div class="actions">
@@ -84,7 +84,10 @@ function ResetApp({ onExport, exporting }: { onExport: () => void; exporting: bo
           <p id="reset-confirm-title">
             <b>Delete everything on this device?</b>
           </p>
-          <p id="reset-confirm-text">This cannot be undone. If you might want your data back, export a backup first.</p>
+          <p id="reset-confirm-text">
+            This deletes your notes, progress, recordings, edited characters, settings and downloaded audio from this device. It cannot be undone. If you might
+            want your data back, export a backup first.
+          </p>
           <div class="actions">
             <button type="button" class="btn" disabled={exporting || step === 'working'} onClick={onExport}>
               <Download size={16} aria-hidden="true" />
@@ -105,7 +108,8 @@ function ResetApp({ onExport, exporting }: { onExport: () => void; exporting: bo
 
 export function DataPage() {
   const [busy, setBusy] = useState<string | null>(null);
-  const [replace, setReplace] = useState(false);
+  // Ticked each time the page opens: a restore replaces what is here unless the box is cleared.
+  const [replace, setReplace] = useState(true);
   const [confirmReplace, setConfirmReplace] = useState<File | null>(null);
   const [imported, setImported] = useState<ImportSummary | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
@@ -119,16 +123,15 @@ export function DataPage() {
   const p = persistence.value;
   const dl = downloadState.value;
   const cached = cachedCount.value ?? 0;
-  const canShare = typeof navigator.share === 'function' && narrow.value;
 
-  const doExport = async (share: boolean) => {
+  const doExport = async () => {
     setBusy('export');
     setExported(null);
     try {
       const { bytes, filename, counts } = await buildExport();
-      const how = await deliverFile(bytes, filename, 'application/zip', share);
+      deliverFile(bytes, filename, 'application/zip');
       setExported(
-        `${how === 'shared' ? 'Shared' : 'Saved'} ${filename} (${mb(bytes.length)}) with ${plural(counts.statuses, 'status', 'statuses')}, ${plural(counts.notes, 'note')}, ${plural(counts.recordings, 'recording')} and ${plural(counts.characters, 'edited character')}.`,
+        `Saved ${filename} (${mb(bytes.length)}) with ${plural(counts.statuses, 'status', 'statuses')}, ${plural(counts.notes, 'note')}, ${plural(counts.recordings, 'recording')} and ${plural(counts.characters, 'edited character')}.`,
       );
     } catch (err) {
       notify(`The backup could not be made: ${(err as Error).message}`, 'error');
@@ -290,20 +293,14 @@ export function DataPage() {
       <section class="backup" aria-labelledby="backup-title">
         <h2 id="backup-title">Backup and restore</h2>
         <p>
-          A backup is one file with your statuses (and so your Learn progress), notes, recordings, edited characters and settings. Restoring adds it to what
-          is here: the newer version of anything wins, and nothing is added twice.
+          A backup is one file with your statuses (and so your Learn progress), notes, recordings, edited characters and settings. Restoring replaces what is
+          here, or, if you turn that off, combines the two: the newer version of anything wins, and nothing is added twice.
         </p>
         <div class="actions">
-          <button type="button" class="btn primary" disabled={!!busy} onClick={() => void doExport(false)}>
+          <button type="button" class="btn primary" disabled={!!busy} onClick={() => void doExport()}>
             <Download size={16} aria-hidden="true" />
             {busy === 'export' ? 'Preparing…' : 'Export backup'}
           </button>
-          {canShare && (
-            <button type="button" class="btn" disabled={!!busy} onClick={() => void doExport(true)}>
-              <Share size={16} aria-hidden="true" />
-              Share…
-            </button>
-          )}
           <button type="button" class="btn" disabled={!!busy} onClick={() => fileRef.current?.click()}>
             <Upload size={16} aria-hidden="true" />
             {busy === 'import' ? 'Restoring…' : 'Restore from backup'}
@@ -323,13 +320,16 @@ export function DataPage() {
             }}
           />
         </div>
-        <label class="check">
-          <input type="checkbox" checked={replace} onChange={(e) => setReplace((e.target as HTMLInputElement).checked)} />
-          Replace everything here with the backup, instead of adding to it
+        <label class="check replace-check">
+          <input type="checkbox" checked={replace} aria-describedby="replace-hint" onChange={(e) => setReplace((e.target as HTMLInputElement).checked)} />
+          <span>
+            Replace my current data with the backup
+            <small id="replace-hint">Turn off to combine the backup with what is already here.</small>
+          </span>
         </label>
         {confirmReplace && (
           <div class="result bad" role="alertdialog" aria-label="Confirm replace">
-            This deletes all notes, statuses, recordings, edited characters and settings in this browser, then loads {confirmReplace.name}.
+            This deletes your current notes, progress, recordings, edited characters and settings on this device, then loads {confirmReplace.name}.
             <div class="actions" style="margin-top:8px">
               <button type="button" class="btn danger" onClick={() => void doImport(confirmReplace, true)}>
                 Delete and replace
@@ -367,7 +367,7 @@ export function DataPage() {
         )}
       </section>
 
-      <ResetApp onExport={() => void doExport(false)} exporting={busy === 'export'} />
+      <ResetApp onExport={() => void doExport()} exporting={busy === 'export'} />
     </article>
   );
 }

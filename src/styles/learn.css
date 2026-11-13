@@ -580,3 +580,94 @@ a.btn.primary {
 .pbar-label .k-shaky {
   color: var(--shaky);
 }
+
+/* ── Finals overview: each group's finals as compact tiles ── */
+.final-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin-top: 12px;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+.final-key > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.final-key b {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  color: var(--ink);
+}
+.final-tiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.final-tile {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 4px 8px 4px 12px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+}
+.final-tile .py {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+.final-tile .eq {
+  font-family: var(--font-serif);
+  font-size: 13px;
+  color: var(--ink-3);
+}
+.final-tile:hover {
+  border-color: var(--accent);
+}
+.final-tile:hover .py {
+  color: var(--accent);
+}
+.final-tile:focus-visible {
+  outline: var(--focus);
+  outline-offset: 2px;
+}
+.ft-type {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 3px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 2px;
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--ink-2);
+}
+.final-cues {
+  margin-top: 10px;
+  max-width: 62ch;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.final-cues span[title] {
+  text-decoration: underline dotted var(--rule-strong);
+  text-underline-offset: 3px;
+}
+@media (pointer: coarse) {
+  .final-tile {
+    min-height: 44px;
+  }
+}

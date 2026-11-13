@@ -4,7 +4,7 @@
   flex: none;
   display: flex;
   flex-direction: column;
-  width: clamp(380px, 34vw, 480px);
+  width: clamp(380px, calc(34 * var(--vw)), 480px);
   border-left: 1px solid var(--rule-strong);
   background: var(--surface);
   min-height: 0;
@@ -51,7 +51,7 @@
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  padding-bottom: calc(24px + var(--safe-bottom));
 }
 
 .d-section {
@@ -635,7 +635,7 @@
     bottom: 0;
     z-index: 20;
     width: auto;
-    height: 62dvh;
+    height: calc(62 * var(--vh));
     border-left: 0;
     border-top: 1px solid var(--rule-strong);
     border-radius: 6px 6px 0 0;
@@ -644,7 +644,7 @@
     touch-action: pan-y;
   }
   .detail.full {
-    height: calc(100dvh - var(--bar-h) - env(safe-area-inset-top) - 8px);
+    height: calc(calc(100 * var(--vh)) - var(--bar-h) - var(--safe-top) - 8px);
   }
   .detail.dragging {
     transition: none;
@@ -671,7 +671,7 @@
   }
   /* Leave room so any cell can be scrolled clear of the sheet. */
   .stage.sheet-open .chart-wrap {
-    padding-bottom: 64dvh;
+    padding-bottom: calc(64 * var(--vh));
   }
   .field,
   .take input.name {

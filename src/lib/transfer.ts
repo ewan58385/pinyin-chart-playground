@@ -225,21 +225,9 @@ export async function mergeLegacyNotes(rows: NonNullable<ExportData['syllableNot
   return changed;
 }
 
-/** Hand a file to the user: the share sheet where it can take files (phones), else a download. */
-export async function deliverFile(bytes: Uint8Array, filename: string, type: string, preferShare = false): Promise<'shared' | 'downloaded'> {
+/** Hand a file to the user as a download. */
+export function deliverFile(bytes: Uint8Array, filename: string, type: string): void {
   const blob = new Blob([bytes as BlobPart], { type });
-  if (preferShare && typeof navigator.share === 'function' && typeof File !== 'undefined') {
-    const file = new File([blob], filename, { type });
-    if (navigator.canShare?.({ files: [file] })) {
-      try {
-        await navigator.share({ files: [file], title: filename });
-        return 'shared';
-      } catch (err) {
-        if ((err as DOMException).name === 'AbortError') return 'shared';
-        // fall through to a plain download
-      }
-    }
-  }
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -248,7 +236,6 @@ export async function deliverFile(bytes: Uint8Array, filename: string, type: str
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
-  return 'downloaded';
 }
 
 // ───────────────────────── Anki ─────────────────────────

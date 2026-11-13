@@ -17,6 +17,7 @@ import type { FinalGroup, FinalType } from '../data/finals';
 import type { Difficulty } from '../data/initials';
 import * as db from './db';
 import { APPEARANCE_CACHE_KEY } from './theme';
+import { clearAudioCache, stopPlayback } from './audio';
 import type { LearnStatus, Override, RecordingMeta, ToneNote } from './db';
 
 // ───────────────────────── settings ─────────────────────────
@@ -137,13 +138,16 @@ export async function loadUserData(): Promise<void> {
 }
 
 /**
- * "Reset app": delete everything the user has added on this device (statuses,
- * and with them Learn progress; notes; recordings; edited characters;
- * settings) and reload the in-memory state, so the app is back to its first
- * run. The downloaded native recordings are not user data and are kept.
+ * "Reset app": delete everything the app has stored on this device (statuses,
+ * and with them Learn progress; notes; the user's recordings; edited
+ * characters; settings; the downloaded native recordings) and reload the
+ * in-memory state, so the app is back to its first run. The service worker's
+ * copy of the app itself is kept, so it still opens offline.
  */
 export async function resetAllData(): Promise<void> {
+  stopPlayback();
   await db.clearAll();
+  await clearAudioCache();
   try {
     localStorage.removeItem(APPEARANCE_CACHE_KEY);
   } catch {

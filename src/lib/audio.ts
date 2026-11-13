@@ -147,9 +147,21 @@ export async function downloadAll(): Promise<void> {
   await refreshCachedCount();
 }
 
+/**
+ * Delete the downloaded native recordings (this app's own Cache Storage
+ * bucket only; the service worker's copy of the app is untouched). Any
+ * download in progress is stopped and the progress is reset. Recordings
+ * stream and cache again the next time they are played.
+ */
 export async function clearAudioCache(): Promise<void> {
-  if (typeof caches !== 'undefined') await caches.delete(CACHE_NAME);
+  cancelDownload = true;
+  try {
+    if (typeof caches !== 'undefined') await caches.delete(CACHE_NAME);
+  } catch {
+    /* Cache Storage unavailable: nothing was stored */
+  }
   warmed.clear();
+  downloadState.value = { running: false, done: 0, total: 0, failed: 0 };
   await refreshCachedCount();
 }
 

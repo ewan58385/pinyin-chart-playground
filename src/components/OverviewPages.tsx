@@ -47,6 +47,31 @@ function GroupProgress({ block }: { block: Block }) {
   );
 }
 
+const TYPE_LETTER: Record<string, string> = { simple: 'S', compound: 'C', nasal: 'N' };
+
+/** One short line under a group: the spelling points its finals carry (the y / w spelling is explained further down the page). */
+function GroupCues({ block }: { block: Block }) {
+  const show = settings.value.showUnverified;
+  const parts = SPELLING_TAGS.filter((t) => t !== 'spelling-variant')
+    .map((t) => {
+      const finals = block.members.filter((id) => blockSyllables('finals', block.id).some((s) => s.final === id && syllableVisible(s, show) && s.tags.includes(t)));
+      return finals.length ? { t, finals } : null;
+    })
+    .filter((x): x is { t: string; finals: string[] } => !!x);
+  if (!parts.length) return null;
+  return (
+    <p class="final-cues">
+      {parts.map((p, i) => (
+        <>
+          {i > 0 && ' · '}
+          <span title={TAG_BY_ID[p.t].explain}>{TAG_BY_ID[p.t].label}</span>:{' '}
+          <span lang="zh-Latn">{p.finals.map((id) => FINAL_BY_ID[id].surface).join(', ')}</span>
+        </>
+      ))}
+    </p>
+  );
+}
+
 export function FinalsOverview() {
   const show = settings.value.showUnverified;
   return (
@@ -58,6 +83,20 @@ export function FinalsOverview() {
           <header class="block-head">
             <h1>Finals</h1>
             <p class="lede">The 36 finals in six groups, in the order of the chart’s columns. Each group has its own page with every syllable that uses its finals.</p>
+            <p class="final-key" aria-label="Key">
+              <span>
+                <span class="ft-type" aria-hidden="true">S</span> simple: one vowel
+              </span>
+              <span>
+                <span class="ft-type" aria-hidden="true">C</span> compound: more than one vowel
+              </span>
+              <span>
+                <span class="ft-type" aria-hidden="true">N</span> nasal: ends in -n or -ng
+              </span>
+              <span>
+                <b lang="zh-Latn">iu = iou</b> the full form behind a short spelling
+              </span>
+            </p>
           </header>
 
           {FINAL_BLOCKS.map((b) => (
@@ -66,34 +105,33 @@ export function FinalsOverview() {
                 <MoreLink href={blockHash(b)}>{b.title}</MoreLink>
               </h2>
               <GroupProgress block={b} />
-              <ul class="ov-list">
+              <ul class="final-tiles">
                 {b.members.map((id) => {
                   const f = FINAL_BY_ID[id];
                   const syls = blockSyllables('finals', b.id).filter((s) => s.final === id && syllableVisible(s, show));
-                  const cues = SPELLING_TAGS.filter((t) => syls.some((s) => s.tags.includes(t)));
-                  const nasal = syls.some((s) => s.tags.includes('front-nasal')) ? 'front nasal -n' : syls.some((s) => s.tags.includes('back-nasal')) ? 'back nasal -ng' : '';
+                  const cues = SPELLING_TAGS.filter((t) => syls.some((s) => s.tags.includes(t))).map((t) => TAG_BY_ID[t].label);
+                  const full = f.canonical !== f.surface ? ` (short for ${f.canonical})` : '';
+                  const about = `${f.surface}${full}: ${f.type} final, ${count(syls.length, 'syllable')}${cues.length ? `; ${cues.join(', ')}` : ''}`;
                   return (
                     <li key={id}>
-                      <a class="ov-item" href={blockHash(b)} aria-label={`${f.surface}: open the ${b.title}`}>
+                      <a class="final-tile" href={blockHash(b)} aria-label={`${about}. Open the ${b.title}`} title={about}>
                         <span class="py" lang="zh-Latn">
                           {f.surface}
                         </span>
-                        {f.canonical !== f.surface && <small class="eq">= {f.canonical}</small>}
+                        {f.canonical !== f.surface && (
+                          <small class="eq" lang="zh-Latn">
+                            = {f.canonical}
+                          </small>
+                        )}
+                        <span class="ft-type" aria-hidden="true">
+                          {TYPE_LETTER[f.type]}
+                        </span>
                       </a>
-                      <span class="ov-tags">
-                        <span class="tag">{f.type}</span>
-                        {nasal && <span class="tag">{nasal}</span>}
-                        {cues.map((t) => (
-                          <span class="tag cue" key={t} title={TAG_BY_ID[t].explain}>
-                            {TAG_BY_ID[t].label}
-                          </span>
-                        ))}
-                      </span>
-                      <small class="count">{count(syls.length, 'syllable')}</small>
                     </li>
                   );
                 })}
               </ul>
+              <GroupCues block={b} />
             </section>
           ))}
 

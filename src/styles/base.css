@@ -26,6 +26,18 @@
   --font-sans: 'Chart Sans', 'Chart Han', 'Source Sans 3', -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   --font-han: 'Chart Han', 'Source Han Serif SC', 'Noto Serif CJK SC', 'Songti SC', 'STSong', 'SimSun', serif;
 
+  /* The whole app is scaled with CSS zoom for the text size (.app below). Inside a
+     zoomed element every length is multiplied by the zoom, viewport units and
+     safe-area insets included, so anything measured against the screen is
+     expressed through these, which divide by the zoom first. 100 × --vh is then
+     exactly the visible viewport at every text size. */
+  --vh: calc(1dvh / var(--text-scale, 1));
+  --vw: calc(1dvw / var(--text-scale, 1));
+  --safe-top: calc(env(safe-area-inset-top, 0px) / var(--text-scale, 1));
+  --safe-right: calc(env(safe-area-inset-right, 0px) / var(--text-scale, 1));
+  --safe-bottom: calc(env(safe-area-inset-bottom, 0px) / var(--text-scale, 1));
+  --safe-left: calc(env(safe-area-inset-left, 0px) / var(--text-scale, 1));
+
   --radius: 3px;
   --bar-h: 52px;
   --focus: 2px solid var(--accent);
@@ -371,10 +383,10 @@ textarea.field {
 .toast {
   position: fixed;
   left: 50%;
-  bottom: calc(18px + env(safe-area-inset-bottom));
+  bottom: calc(18px + var(--safe-bottom));
   transform: translateX(-50%);
   z-index: 60;
-  max-width: min(520px, calc(100vw - 32px));
+  max-width: min(520px, calc(calc(100 * var(--vw)) - 32px));
   padding: 10px 14px;
   border-radius: var(--radius);
   background: var(--ink);

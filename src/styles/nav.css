@@ -140,8 +140,8 @@
     flex: none;
     display: grid;
     grid-template-columns: repeat(var(--tabs, 5), 1fr);
-    height: calc(var(--tab-h) + env(safe-area-inset-bottom));
-    padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    height: calc(var(--tab-h) + var(--safe-bottom));
+    padding: 0 var(--safe-right) var(--safe-bottom) var(--safe-left);
     border-top: 1px solid var(--rule-strong);
     background: var(--paper);
     position: relative;
@@ -181,14 +181,14 @@
   }
   /* The detail sheet and toasts sit above the tab bar, never over it. */
   .detail {
-    bottom: calc(var(--tab-h) + env(safe-area-inset-bottom));
-    height: min(62dvh, calc(100dvh - var(--bar-h) - var(--tab-h) - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 8px));
+    bottom: calc(var(--tab-h) + var(--safe-bottom));
+    height: min(calc(62 * var(--vh)), calc(calc(100 * var(--vh)) - var(--bar-h) - var(--tab-h) - var(--safe-top) - var(--safe-bottom) - 8px));
   }
   .detail.full {
-    height: calc(100dvh - var(--bar-h) - var(--tab-h) - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 8px);
+    height: calc(calc(100 * var(--vh)) - var(--bar-h) - var(--tab-h) - var(--safe-top) - var(--safe-bottom) - 8px);
   }
   .toast {
-    bottom: calc(14px + var(--tab-h) + env(safe-area-inset-bottom));
+    bottom: calc(14px + var(--tab-h) + var(--safe-bottom));
   }
   .chart-wrap,
   .block-wrap {

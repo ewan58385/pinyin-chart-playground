@@ -21,7 +21,6 @@ export {
   Moon,
   Monitor,
   Info,
-  Share2 as Share,
   Rotate3d as Flip,
   Rows3 as Density,
   Eye,
