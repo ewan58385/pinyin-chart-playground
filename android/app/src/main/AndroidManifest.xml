@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--
+      Native customisations (listed in docs/ANDROID.md):
+      - allowBackup="false": the app's data lives in WebView storage (IndexedDB with
+        recordings), which can pass Auto Backup's 25 MB limit and must not be restored
+        in part. The in-app backup file is the supported way to move data.
+      - usesCleartextTraffic="false": the app loads only from its own https origin.
+        Debug builds allow cleartext for live reload (src/debug/AndroidManifest.xml).
+      - No INTERNET permission: everything ships inside the app. Links to forvo.com
+        open in the browser, which has its own. Debug builds add it for live reload.
+    -->
+    <application
+        android:allowBackup="false"
+        android:usesCleartextTraffic="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
+            android:name=".MainActivity"
+            android:label="@string/title_activity_main"
+            android:theme="@style/AppTheme.NoActionBarLaunch"
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustResize"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Backups and Anki exports are written to the cache and handed to the share sheet through this provider. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
+        </provider>
+    </application>
+
+    <!-- Permissions -->
+
+    <!-- Your own recordings. Asked for the first time you record. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- Required by the WebView alongside RECORD_AUDIO for microphone capture; granted at install, no prompt. -->
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+</manifest>

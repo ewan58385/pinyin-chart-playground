@@ -24,7 +24,8 @@ import { getRecordingBlob } from '../lib/db';
 import { getNativeBlob, nativeItem, nowPlaying, play, playError, stopPlayback, unlockAudio, type PlayItem } from '../lib/audio';
 import { decode, peaksOf, pitchAnalysis, speechBounds, type PitchResult } from '../lib/analysis';
 import { explainNoContour, fitAxis, medianLabel, plotValue, yOf, type PitchMode } from '../lib/overlay';
-import { MAX_RECORDING_MS, recState, recordingUnavailableReason, resamplePeaks, startRecording, type ActiveRecording } from '../lib/recorder';
+import { MAX_RECORDING_MS, RecordingError, recState, recordingUnavailableReason, resamplePeaks, startRecording, type ActiveRecording } from '../lib/recorder';
+import { platform } from '../platform';
 import { online } from '../lib/viewport';
 import { Play, Stop, Mic, Star, Trash, Pencil, Swap, Loop, PitchIcon, Reset, ExternalLink } from './icons';
 import { forvoLink } from '../lib/forvo';
@@ -362,6 +363,7 @@ export function ToneView({ syl, cell }: { syl: Syllable; cell: ToneCell }) {
   const [editing, setEditing] = useState(false);
   const [takeId, setTakeId] = useState<string | null>(null);
   const [recError, setRecError] = useState<string | null>(null);
+  const [recFix, setRecFix] = useState<'settings' | undefined>(undefined);
   const active = useRef<ActiveRecording | null>(null);
   const take = takes.find((t) => t.id === takeId) ?? preferredTake(id);
 
@@ -397,6 +399,7 @@ export function ToneView({ syl, cell }: { syl: Syllable; cell: ToneCell }) {
     unlockAudio();
     stopPlayback();
     setRecError(null);
+    setRecFix(undefined);
     try {
       const rec = await startRecording();
       active.current = rec;
@@ -438,6 +441,7 @@ export function ToneView({ syl, cell }: { syl: Syllable; cell: ToneCell }) {
     } catch (err) {
       active.current = null;
       setRecError((err as Error).message);
+      setRecFix(err instanceof RecordingError ? err.fix : undefined);
     }
   };
 
@@ -507,7 +511,7 @@ export function ToneView({ syl, cell }: { syl: Syllable; cell: ToneCell }) {
                 href={forvo.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label={`Hear ${forvo.term} on Forvo. Opens forvo.com, an external site, in a new tab`}
+                aria-label={`Hear ${forvo.term} on Forvo. Opens forvo.com, an external site, ${platform.externalLinkTarget}`}
               >
                 Hear it on Forvo
                 <ExternalLink size={14} aria-hidden="true" />
@@ -589,7 +593,7 @@ export function ToneView({ syl, cell }: { syl: Syllable; cell: ToneCell }) {
             ) : native ? (
               <Wave peaks={native.peaks} />
             ) : (
-              <span class="none">{native === null && !online.value ? 'Not downloaded yet' : ''}</span>
+              <span class="none">{native === null && !online.value && !platform.bundledAudio ? 'Not downloaded yet' : ''}</span>
             )}
           </div>
           <div class={`lane${minePlaying ? ' playing' : ''}`}>
@@ -670,6 +674,13 @@ export function ToneView({ syl, cell }: { syl: Syllable; cell: ToneCell }) {
           <p class="error-text" role="alert" style="margin-top:8px">
             {unavailable ?? recError}
           </p>
+        )}
+        {!unavailable && recError && recFix === 'settings' && (
+          <div class="actions">
+            <button type="button" class="btn" onClick={() => void platform.openAppSettings()}>
+              Open settings
+            </button>
+          </div>
         )}
 
         {takes.length > 0 && (

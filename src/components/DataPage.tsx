@@ -17,7 +17,18 @@ import {
 import { cacheSupported, cachedCount, clearAudioCache, downloadAll, downloadState, stopDownloadAll, totalClipCount } from '../lib/audio';
 import { applyImport, buildAnkiExport, buildExport, deliverFile, type ImportSummary } from '../lib/transfer';
 import { online } from '../lib/viewport';
+import { useBackLayer } from '../lib/back';
+import { platform } from '../platform';
 import { Download, Upload, WifiOff, Trash } from './icons';
+
+/** The app keeps the native recordings inside it: no downloads to talk about. */
+const bundled = platform.bundledAudio;
+/** What "Reset app" deletes. The app has no downloaded audio to delete. */
+const WHAT_RESET_DELETES = bundled
+  ? 'notes, progress, recordings, edited characters and settings'
+  : 'notes, progress, recordings, edited characters, settings and downloaded audio';
+/** File types the restore picker offers. Android's picker matches on type, and a zip can arrive from Drive or e-mail labelled any of these. */
+const BACKUP_TYPES = platform.isNative ? '.zip,application/zip,application/x-zip-compressed,application/octet-stream' : '.zip,application/zip';
 
 const mb = (bytes: number) => (bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`);
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
@@ -37,13 +48,14 @@ function ResetApp({ onExport, exporting }: { onExport: () => void; exporting: bo
     // Back to the button that opened the warning.
     setTimeout(() => openRef.current?.focus(), 0);
   };
+  useBackLayer(step === 'confirm', cancel);
 
   const reset = async () => {
     setStep('working');
     try {
       await resetAllData();
       setStep('idle');
-      notify('Your data and downloaded audio have been deleted. The app is as new.');
+      notify(bundled ? 'Your data has been deleted. The app is as new.' : 'Your data and downloaded audio have been deleted. The app is as new.');
       document.querySelector<HTMLElement>('.page h1')?.focus();
     } catch (err) {
       setStep('confirm');
@@ -55,8 +67,7 @@ function ResetApp({ onExport, exporting }: { onExport: () => void; exporting: bo
     <section class="reset" aria-labelledby="reset-title">
       <h2 id="reset-title">Reset app</h2>
       <p>
-        Delete your notes, progress, recordings, edited characters, settings and downloaded audio from this device. The app goes back to how it was the
-        first time you opened it.
+        Delete your {WHAT_RESET_DELETES} from this device. The app goes back to how it was the first time you opened it.
       </p>
       {step === 'idle' ? (
         <div class="actions">
@@ -85,8 +96,7 @@ function ResetApp({ onExport, exporting }: { onExport: () => void; exporting: bo
             <b>Delete everything on this device?</b>
           </p>
           <p id="reset-confirm-text">
-            This deletes your notes, progress, recordings, edited characters, settings and downloaded audio from this device. It cannot be undone. If you might
-            want your data back, export a backup first.
+            This deletes your {WHAT_RESET_DELETES} from this device. It cannot be undone. If you might want your data back, export a backup first.
           </p>
           <div class="actions">
             <button type="button" class="btn" disabled={exporting || step === 'working'} onClick={onExport}>
@@ -115,6 +125,11 @@ export function DataPage() {
   const [importError, setImportError] = useState<string | null>(null);
   const [exported, setExported] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const cancelReplace = () => {
+    setConfirmReplace(null);
+    if (fileRef.current) fileRef.current.value = '';
+  };
+  useBackLayer(!!confirmReplace && busy !== 'import', cancelReplace);
 
   const recs = recordings.value;
   const recBytes = recs.reduce((n, r) => n + r.bytes, 0);
@@ -129,9 +144,12 @@ export function DataPage() {
     setExported(null);
     try {
       const { bytes, filename, counts } = await buildExport();
-      deliverFile(bytes, filename, 'application/zip');
+      const how = await deliverFile(bytes, filename, 'application/zip');
+      const contents = `${plural(counts.statuses, 'status', 'statuses')}, ${plural(counts.notes, 'note')}, ${plural(counts.recordings, 'recording')} and ${plural(counts.characters, 'edited character')}`;
       setExported(
-        `Saved ${filename} (${mb(bytes.length)}) with ${plural(counts.statuses, 'status', 'statuses')}, ${plural(counts.notes, 'note')}, ${plural(counts.recordings, 'recording')} and ${plural(counts.characters, 'edited character')}.`,
+        how === 'cancelled'
+          ? 'The backup was not saved.'
+          : `${how === 'shared' ? 'Exported' : 'Saved'} ${filename} (${mb(bytes.length)}) with ${contents}.`,
       );
     } catch (err) {
       notify(`The backup could not be made: ${(err as Error).message}`, 'error');
@@ -160,8 +178,8 @@ export function DataPage() {
     setBusy('anki');
     try {
       const { bytes, filename, cards, clips } = await buildAnkiExport(cellIds);
-      await deliverFile(bytes, filename, 'application/zip');
-      notify(`Anki export ready: ${plural(cards, 'card')}, ${plural(clips, 'recording')}.`);
+      const how = await deliverFile(bytes, filename, 'application/zip');
+      if (how !== 'cancelled') notify(`Anki export ready: ${plural(cards, 'card')}, ${plural(clips, 'recording')}.`);
     } catch (err) {
       notify(`The Anki export could not be made: ${(err as Error).message}`, 'error');
     }
@@ -172,8 +190,8 @@ export function DataPage() {
     <article class="page">
       <h1 tabIndex={-1}>My data</h1>
       <p class="lede">
-        Everything you add is kept in this browser on this device. There is no account and nothing is sent anywhere. Make a backup to keep it safe or to move
-        it to another device.
+        Everything you add is kept {platform.isNative ? 'in the app' : 'in this browser'} on this device. There is no account and nothing is sent anywhere.
+        Make a backup to keep it safe or to move it to another device.
       </p>
 
       <section>
@@ -204,27 +222,33 @@ export function DataPage() {
       <section>
         <h2>Keeping your data safe</h2>
         {memoryOnly.value ? (
-          <p class="result bad">This browser is not letting the app save anything, so your changes will be lost when you close the tab. Private browsing is the usual cause.</p>
+          <p class="result bad">
+            {platform.isNative
+              ? 'This device is not letting the app save anything, so your changes will be lost when you close the app.'
+              : 'This browser is not letting the app save anything, so your changes will be lost when you close the tab. Private browsing is the usual cause.'}
+          </p>
         ) : (
           <>
             <p>
-              {!p.supported
-                ? 'This browser decides for itself when to clear saved data. Keep a backup.'
-                : p.granted === null
-                  ? 'The app asks the browser to keep your data the first time you save something.'
-                  : p.granted
-                    ? 'The browser has agreed to keep your data, even when the device is short of space.'
-                    : 'The browser may clear this site’s data if the device runs short of space or you do not use the app for a long time. Installing the app to your home screen makes that much less likely. Keep a backup.'}
+              {p.kind === 'app'
+                ? 'Your data is stored on this device. Back up regularly: it is deleted if you uninstall the app or clear its storage, and it is not copied to your Google account or to a new phone.'
+                : !p.canRequest
+                  ? 'This browser decides for itself when to clear saved data. Keep a backup.'
+                  : p.persisted === null
+                    ? 'The app asks the browser to keep your data the first time you save something.'
+                    : p.persisted
+                      ? 'The browser has agreed to keep your data, even when the device is short of space.'
+                      : 'The browser may clear this site’s data if the device runs short of space or you do not use the app for a long time. Installing the app to your home screen makes that much less likely. Keep a backup.'}
             </p>
             {p.usage !== undefined && p.quota !== undefined && (
               <p class="hint">
                 Using {mb(p.usage)} of about {mb(p.quota)} available.
               </p>
             )}
-            {p.supported && !p.granted && (
+            {p.canRequest && !p.persisted && (
               <div class="actions">
                 <button type="button" class="btn" onClick={() => void requestPersistence(true)}>
-                  {p.granted === null ? 'Ask the browser now' : 'Ask again'}
+                  {p.persisted === null ? 'Ask the browser now' : 'Ask again'}
                 </button>
               </div>
             )}
@@ -233,8 +257,10 @@ export function DataPage() {
       </section>
 
       <section>
-        <h2>Native recordings offline</h2>
-        {!cacheSupported.value ? (
+        <h2>{bundled ? 'Native recordings' : 'Native recordings offline'}</h2>
+        {bundled ? (
+          <p>All {totalClipCount} native recordings are included in the app, so they play without a connection.</p>
+        ) : !cacheSupported.value ? (
           <p class="result bad">This browser cannot save the recordings for offline use here. They will play when you are online.</p>
         ) : (
           <>
@@ -287,7 +313,7 @@ export function DataPage() {
             {busy === 'anki' ? 'Preparing…' : `Export ${cellIds.length} cards for Anki`}
           </button>
         </div>
-        <p class="hint">The download includes short instructions for importing it into Anki.</p>
+        <p class="hint">The {platform.isNative ? 'file' : 'download'} includes short instructions for importing it into Anki.</p>
       </section>
 
       <section class="backup" aria-labelledby="backup-title">
@@ -308,7 +334,7 @@ export function DataPage() {
           <input
             ref={fileRef}
             type="file"
-            accept=".zip,application/zip"
+            accept={BACKUP_TYPES}
             class="sr-only"
             tabIndex={-1}
             aria-label="Choose a backup file to restore"
@@ -334,14 +360,7 @@ export function DataPage() {
               <button type="button" class="btn danger" onClick={() => void doImport(confirmReplace, true)}>
                 Delete and replace
               </button>
-              <button
-                type="button"
-                class="btn"
-                onClick={() => {
-                  setConfirmReplace(null);
-                  if (fileRef.current) fileRef.current.value = '';
-                }}
-              >
+              <button type="button" class="btn" onClick={cancelReplace}>
                 Cancel
               </button>
             </div>

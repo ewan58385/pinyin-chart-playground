@@ -1,0 +1,61 @@
+# Checks every push and pull request: typecheck, tests, the web build, the native web
+# build, the Android release-safety checks, and an Android debug APK (downloadable from
+# the run's Artifacts). Uses no secrets. See docs/ANDROID.md.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - name: Web build
+        run: npm run build
+      - name: Native web build (what the Android app packages)
+        run: npm run build:native
+
+  android-debug:
+    needs: web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      # Caches Gradle and validates the committed Gradle wrapper.
+      - uses: gradle/actions/setup-gradle@v6
+      - run: npm ci
+      - name: Build the web app and copy it into the Android project
+        run: npm run android:sync
+      - name: Release safety checks (no server URL, permissions, signing files)
+        run: npm run check:native
+      - name: Debug APK
+        run: npx tsx scripts/gradle.ts assembleDebug
+      - uses: actions/upload-artifact@v7
+        with:
+          name: pinyin-chart-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14

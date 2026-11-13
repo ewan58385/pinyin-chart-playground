@@ -9,6 +9,7 @@
  */
 import { signal } from '@preact/signals';
 import { audioContext } from './analysis';
+import { platform, type MicrophoneRefusal } from '../platform';
 
 export const MAX_RECORDING_MS = 10_000;
 
@@ -16,8 +17,11 @@ const PREFERRED_TYPES = ['audio/mp4;codecs=mp4a.40.2', 'audio/mp4', 'audio/webm;
 
 export function recordingUnavailableReason(): string | null {
   if (!window.isSecureContext) return 'Recording only works when the app is opened over a secure (https) connection.';
-  if (!navigator.mediaDevices?.getUserMedia) return 'This browser does not give web pages access to the microphone.';
-  if (typeof MediaRecorder === 'undefined') return 'This browser cannot record audio.';
+  if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+    if (platform.isNative) return 'Recording is not available on this device. Updating Android System WebView from Google Play usually fixes this.';
+    if (!navigator.mediaDevices?.getUserMedia) return 'This browser does not give web pages access to the microphone.';
+    return 'This browser cannot record audio.';
+  }
   return null;
 }
 
@@ -31,14 +35,39 @@ function pickMimeType(): string | undefined {
   });
 }
 
+/** A recording that could not start, with a message fit to show and, where it helps, a way to fix it. */
+export class RecordingError extends Error {
+  constructor(
+    message: string,
+    /** "settings": offer to open the app's page in the system settings. */
+    readonly fix?: 'settings',
+  ) {
+    super(message);
+  }
+}
+
+/** What to say when the microphone was refused, by how it was refused. */
+export function refusalMessage(native: boolean, refusal: MicrophoneRefusal | null): RecordingError {
+  if (!native) {
+    return new RecordingError('Microphone access was refused. Allow the microphone for this site in your browser settings, then try again. Everything else still works.');
+  }
+  if (refusal === 'denied') {
+    return new RecordingError('Microphone access was refused. To record, tap Record again and choose Allow. Everything else still works.');
+  }
+  return new RecordingError(
+    'Microphone access is turned off for this app. To record, open Settings, then Permissions, then Microphone, and allow it. Everything else still works.',
+    'settings',
+  );
+}
+
 function describeError(err: unknown): string {
   const name = (err as DOMException)?.name;
   if (name === 'NotAllowedError' || name === 'SecurityError') {
-    return 'Microphone access was refused. Allow the microphone for this site in your browser settings, then try again. Everything else still works.';
+    return refusalMessage(false, null).message;
   }
   if (name === 'NotFoundError' || name === 'OverconstrainedError') return 'No microphone was found on this device.';
   if (name === 'NotReadableError') return 'The microphone is in use by another app.';
-  return `Recording could not start: ${(err as Error)?.message ?? 'the browser gave no reason'}.`;
+  return `Recording could not start: ${(err as Error)?.message ?? 'no reason was given'}.`;
 }
 
 export interface RecordingResult {
@@ -76,7 +105,11 @@ export async function startRecording(): Promise<ActiveRecording> {
       audio: { channelCount: 1, echoCancellation: false, noiseSuppression: false, autoGainControl: false },
     });
   } catch (err) {
-    throw new Error(describeError(err));
+    const name = (err as DOMException)?.name;
+    if (platform.isNative && (name === 'NotAllowedError' || name === 'SecurityError')) {
+      throw refusalMessage(true, await platform.microphoneRefusal());
+    }
+    throw new RecordingError(describeError(err));
   }
 
   const mimeType = pickMimeType();

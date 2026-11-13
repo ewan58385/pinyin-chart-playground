@@ -666,6 +666,17 @@ td.dim .cell:focus-visible {
   color: var(--ink);
   font-size: 13.5px;
 }
+.feature-notice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.feature-notice span {
+  flex: 1;
+}
+.feature-notice .btn {
+  flex: none;
+}
 
 /* ── Narrow screens ──────────────────────────────────── */
 

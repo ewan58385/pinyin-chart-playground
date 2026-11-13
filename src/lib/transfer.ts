@@ -21,6 +21,7 @@ import { getNativeBlob } from './audio';
 import { resolveExample, toneNotes, statuses } from './store';
 import { attributionText, LICENCES_CHECKED_ON } from '../data/credits';
 import { OPEN_DATA_URL } from '../config';
+import { platform, type DeliverResult } from '../platform';
 
 export const EXPORT_FORMAT = 'pinyin-chart-export';
 /**
@@ -227,17 +228,9 @@ export async function mergeLegacyNotes(rows: NonNullable<ExportData['syllableNot
   return changed;
 }
 
-/** Hand a file to the user as a download. */
-export function deliverFile(bytes: Uint8Array, filename: string, type: string): void {
-  const blob = new Blob([bytes as BlobPart], { type });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+/** Hand a file to the user: a download on the web, the share sheet in the Android app. */
+export function deliverFile(bytes: Uint8Array, filename: string, type: string): Promise<DeliverResult> {
+  return platform.deliverFile(bytes, filename, type);
 }
 
 // ───────────────────────── Anki ─────────────────────────

@@ -11,10 +11,14 @@
  * has been started by a tap, so reusing one element is what makes
  * "native, then mine" sequences and looping work there. Blob URLs also avoid
  * HTTP range requests, which cached responses cannot answer.
+ *
+ * In the Android app the clips are part of the app (platform.bundledAudio), so
+ * nothing is cached: openCache() returns null and every clip is read from the app.
  */
 import { signal } from '@preact/signals';
 import { AUDIO_CLIPS, SYLLABLES, TONE_CELL, hasNativeAudio, type Syllable } from '../data';
 import { toAscii } from './pinyin';
+import { platform } from '../platform';
 
 /**
  * The bucket name changes whenever the clips are replaced by a different
@@ -42,6 +46,7 @@ export async function purgeStaleAudioCaches(): Promise<void> {
 }
 
 async function openCache(): Promise<Cache | null> {
+  if (platform.bundledAudio) return null;
   try {
     return typeof caches === 'undefined' ? null : await caches.open(CACHE_NAME);
   } catch {
@@ -239,7 +244,7 @@ function playOne(item: PlayItem, blob: Blob, rate: number, mySession: number): P
       resolve();
     };
     a.onended = finish;
-    a.onerror = () => reject(new Error('This recording cannot be played in this browser.'));
+    a.onerror = () => reject(new Error(`This recording cannot be played ${platform.isNative ? 'on this device' : 'in this browser'}.`));
     a.src = currentUrl;
     a.defaultPlaybackRate = rate;
     a.playbackRate = rate;
@@ -288,7 +293,7 @@ export async function play(items: PlayItem[], opts: { rate?: number; loop?: bool
     if (mySession !== session) return;
     const ready = items.map((item, i) => ({ item, blob: blobs[i] })).filter((x): x is { item: PlayItem; blob: Blob } => !!x.blob);
     if (!ready.length) {
-      playError.value = navigator.onLine === false ? 'This recording has not been downloaded for offline use yet.' : 'No recording.';
+      playError.value = navigator.onLine === false && !platform.bundledAudio ? 'This recording has not been downloaded for offline use yet.' : 'No recording.';
       return;
     }
     do {
@@ -304,7 +309,9 @@ export async function play(items: PlayItem[], opts: { rate?: number; loop?: bool
     if (mySession !== session) return;
     const e = err as Error;
     playError.value =
-      e.name === 'NotAllowedError' ? 'The browser blocked playback. Tap the play button again.' : e.message || 'The recording could not be played.';
+      e.name === 'NotAllowedError'
+        ? `${platform.isNative ? 'Playback was blocked.' : 'The browser blocked playback.'} Tap the play button again.`
+        : e.message || 'The recording could not be played.';
   } finally {
     if (mySession === session) {
       release();

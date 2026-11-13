@@ -1,0 +1,4 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <!-- app_name and title_activity_main are set from app.config.json in app/build.gradle. -->
+</resources>

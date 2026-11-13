@@ -1,0 +1,114 @@
+apply plugin: 'com.android.application'
+
+import groovy.json.JsonSlurper
+
+// ---------------------------------------------------------------------------
+// Version (docs/RELEASING.md). package.json "version" is the only place to change it.
+//   versionName = package.json version, e.g. "1.2.3"
+//   versionCode = major * 10000 + minor * 100 + patch, e.g. 1.2.3 -> 10203
+// minor and patch must stay below 100. CI or a one-off rebuild can set a higher
+// code with the ANDROID_VERSION_CODE environment variable (or -PandroidVersionCode).
+// The same rule is in scripts/lib/android-version.ts and tested in tests/android-version.test.ts.
+// ---------------------------------------------------------------------------
+def packageJson = new JsonSlurper().parse(rootProject.file('../package.json'))
+// The app id and name come from app.config.json, as capacitor.config.ts does.
+def identity = new JsonSlurper().parse(rootProject.file('../app.config.json'))
+def appVersion = packageJson.version as String
+def versionMatch = appVersion =~ /^(\d+)\.(\d+)\.(\d+)$/
+if (!versionMatch.matches()) {
+    throw new GradleException("package.json version '${appVersion}' must be MAJOR.MINOR.PATCH (digits only) for Android.")
+}
+def (major, minor, patch) = [1, 2, 3].collect { versionMatch.group(it) as int }
+if (minor > 99 || patch > 99) {
+    throw new GradleException("package.json version '${appVersion}': minor and patch must be 0-99 for the Android version code.")
+}
+def derivedVersionCode = major * 10000 + minor * 100 + patch
+def versionCodeOverride = (project.findProperty('androidVersionCode') ?: System.getenv('ANDROID_VERSION_CODE'))?.toString()?.trim()
+def appVersionCode = versionCodeOverride ? versionCodeOverride as int : derivedVersionCode
+if (appVersionCode < 1 || appVersionCode > 2100000000) {
+    throw new GradleException("Android versionCode ${appVersionCode} is outside 1-2100000000.")
+}
+
+// ---------------------------------------------------------------------------
+// Release signing with your upload key (docs/RELEASING.md). Read from
+// android/keystore.properties (gitignored) or from environment variables.
+// Without either, release builds are produced unsigned and debug builds are unaffected.
+// ---------------------------------------------------------------------------
+def keystoreProps = new Properties()
+def keystorePropsFile = rootProject.file('keystore.properties')
+if (keystorePropsFile.exists()) {
+    keystorePropsFile.withInputStream { keystoreProps.load(it) }
+}
+def signingValue = { String prop, String env -> (keystoreProps.getProperty(prop) ?: System.getenv(env))?.toString() }
+def uploadStoreFile = signingValue('storeFile', 'ANDROID_KEYSTORE_PATH')
+def hasUploadKey = uploadStoreFile && signingValue('storePassword', 'ANDROID_KEYSTORE_PASSWORD') &&
+        signingValue('keyAlias', 'ANDROID_KEY_ALIAS') && signingValue('keyPassword', 'ANDROID_KEY_PASSWORD')
+
+android {
+    namespace = "com.example.pinyinchart"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId identity.appId
+        resValue "string", "app_name", identity.appName
+        resValue "string", "title_activity_main", identity.appName
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode appVersionCode
+        versionName appVersion
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    signingConfigs {
+        if (hasUploadKey) {
+            upload {
+                storeFile rootProject.file(uploadStoreFile)
+                storePassword signingValue('storePassword', 'ANDROID_KEYSTORE_PASSWORD')
+                keyAlias signingValue('keyAlias', 'ANDROID_KEY_ALIAS')
+                keyPassword signingValue('keyPassword', 'ANDROID_KEY_PASSWORD')
+            }
+        }
+    }
+    buildTypes {
+        release {
+            if (hasUploadKey) {
+                signingConfig signingConfigs.upload
+            }
+            debuggable false
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}

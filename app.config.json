@@ -1,0 +1,5 @@
+{
+  "$comment": "The app's identity on every platform. appId is the Android package name: it cannot change after the first upload to Google Play.",
+  "appId": "com.example.pinyinchart",
+  "appName": "Pinyin Chart"
+}

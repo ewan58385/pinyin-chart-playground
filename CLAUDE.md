@@ -4,17 +4,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 It is also the project state file: read it first, and update **State** and **Key decisions** after every step of a piece of work.
 
-Offline-first PWA: interactive Mandarin pinyin chart (Vite + TypeScript + Preact + @preact/signals, vite-plugin-pwa, IndexedDB via `idb`, zips via `fflate`). Static site, no backend. `.github/workflows/deploy.yml` runs `npm test`, then builds with `BASE_PATH=/<repo>/` and deploys to GitHub Pages on every push to `main`, so pushing to `main` publishes. README.md is the user-facing feature reference; keep it in step when behaviour changes.
+Offline-first PWA: interactive Mandarin pinyin chart (Vite + TypeScript + Preact + @preact/signals, vite-plugin-pwa, IndexedDB via `idb`, zips via `fflate`). Static site, no backend. Also packaged as a paid Android app with Capacitor 8 (`android/`, docs in `docs/`). `.github/workflows/deploy.yml` (GitHub Pages, `BASE_PATH=/<repo>/`) now runs **only by manual dispatch**; `ci.yml` tests every push (typecheck, tests, web + native builds, `check:native`, debug APK). README.md is the user-facing feature reference; keep it in step when behaviour changes.
 
 ## State
 
-As of 2026-11-13: `main` = `origin/main` at 556b8a0 (Round 8). Uncommitted in the working tree: Round 9 (My data moved into the ⋯ menu under Settings; four phone tabs; Finals bar spacing) and Round 10 (commercial licensing: SUBTLEX-CH removed, fallback ranking from HSK + Unihan, verified audio source, credits page, THIRD_PARTY_NOTICES.md, open-data/).
+As of 2026-11-13: `main` = `origin/main` at fdf9dd6 (Rounds 9 and 10 committed). Uncommitted in the working tree: Round 11, the Capacitor Android app (platform layer, `android/`, native build mode, back button, share-sheet export, microphone messages, icons/splash, CI/release/Dependabot workflows, deploy made manual, docs/, credits for Capacitor and Android libraries). Emulator QA results in docs/DEVICE_QA.md.
+
+Open questions for the user (Round 11):
+- **App id is the placeholder `com.example.pinyinchart`** (`app.config.json`): Play rejects it and it cannot change after the first upload.
+- Upload key (user generates; docs/RELEASING.md), Play developer account and payments profile, privacy policy hosting (fill docs/PRIVACY.md, set `PRIVACY_POLICY_URL` in src/config.ts), support e-mail. A free app can never be made paid on Play.
+- Real-device QA (WebView 140+ insets, share targets, old Android) is unverified.
 
 Open questions for the user (Round 10):
 - Leipzig Corpora Collection: its terms page sits behind an anti-bot challenge, so its licence could not be read from a primary source; not used. If the user confirms its terms permit commercial redistribution of derived data, it could replace the fallback.
 - Audio licence version: the files' metadata says CC-BY-SA-3.0; the audio-cmn README says "CC-by-sa" with no version and there is no LICENSE file.
 - HSK levels: complete-hsk-vocabulary and its upstreams (clem109/hsk-vocabulary ← gigacool/hanyu-shuiping-kaoshi; elkmovie/hsk30) are all MIT, but hsk30 is extracted from an official Ministry of Education document.
-- Publish `open-data/` (with `npm run data:open -- --audio`) and set `OPEN_DATA_URL` in `src/config.ts`. Whether ShareAlike reaches the app code is for a lawyer.
+- `open-data/` is published (`OPEN_DATA_URL` set). Whether ShareAlike reaches the app code is for a lawyer.
 - Pages Source should be "GitHub Actions" (see Round 8).
 
 ## Commands
@@ -29,7 +34,12 @@ npm run data:audio -- --source <folder>   # audio from another local folder (def
 npm run data:notices                      # credits → notices-packages.json, licence-texts.json, THIRD_PARTY_NOTICES.md
 npm run data:open [-- --audio]            # open-data/ (CC BY-SA material); --audio copies the clips (gitignored)
 npx tsx scripts/diagnose-pitch.ts         # writes reports/pitch-diagnosis.md
+npm run build:native                      # vite build --mode native (base /, no SW, no PWA icons)
+npm run android:debug | android:bundle | android:apk | android:open | android:livereload | android:assets
+npm run check:native                      # release safety checks (server.url, permissions, backup, debuggable, tracked keystores)
 ```
+
+- Android toolchain here (user level, not on PATH by default): Node 22 `~/.local/share/toolchain/node-v22.23.5-linux-x64`, JDK 21 `~/.local/share/toolchain/jdk-21.0.13+9`, SDK `~/Android/Sdk` (platform 36, build-tools 35.0.0/36.1.0, emulator, AVD `pixel_api36`, WebView 133). Export `JAVA_HOME`, `ANDROID_HOME` and PATH first. Emulator QA: debug builds expose the WebView DevTools socket (`adb forward tcp:9333 localabstract:webview_devtools_remote_<pid>`, puppeteer `connect`); use CDP `page.tap` for in-page taps (the WebView is padded below the status bar on WebView < 140) and `adb shell input keyevent 4` for Back.
 
 - No linter; `tsc` is strict with `noUnusedLocals`/`noUnusedParameters` and covers `src`, `tests`, `scripts`.
 - Vitest runs `tests/**/*.test.ts` in a node environment; DB tests use `fake-indexeddb`.
@@ -57,6 +67,8 @@ npx tsx scripts/diagnose-pitch.ts         # writes reports/pitch-diagnosis.md
 - **Segmented controls** (`.seg` in base.css): equal-width grid columns, a hairline before every option, the selected option inset. In Settings they span the row, labels wrap, and they stack below a 250px container width.
 - **Credits:** `src/data/credits.ts` is the one list of third-party material; it feeds the Credits and licences page (`#/credits`, `CreditsPage.tsx`, licence texts lazy-loaded), `THIRD_PARTY_NOTICES.md` (`scripts/build-notices.ts`), the Anki README and `open-data/` (`scripts/build-open-data.ts`). `tests/credits.test.ts` checks completeness and that no SUBTLEX-derived data remains.
 - **Card key:** `CardLegend` in `SyllableCard.tsx` is the one legend for syllable cards (group and Browse pages); its sample boxes reuse the `.tone-btn` classes.
+- **Platform layer** (`src/platform/`: `types.ts` interface, `web.ts`, `native.ts`, `index.ts` picks via `Capacitor.isNativePlatform()`): files (download vs Filesystem cache `exports/` + share sheet, 3 MB chunks), external links, back button, system bars, splash, microphone refusal kind + open settings (local plugin `MicrophonePermissionPlugin.java`), app version, storage report, `bundledAudio`. **No Capacitor imports outside `src/platform/`** (`tests/boundaries.test.ts`); index.html's inline boot script reads `window.Capacitor` only for the slow-start WebView hint.
+- **Android specifics:** native build has no service worker (`registerSW` skipped, plugin `disable`), audio not cached (`openCache` returns null when `bundledAudio`), My data/About/banners/recorder copy branch on `platform.isNative`/`bundledAudio`. Back button: `src/lib/back.ts` (pure `decideBack`, layer stack, `useBackLayer` in Menu, SearchBox, FilterBar, reset and restore confirmations) + `src/lib/systemBack.ts`. `closeSyllable` uses `history.back()` when `openSyllable` pushed the entry (no duplicate history entries; web too). `src/lib/viewport.ts` re-reveals a focused field after keyboard resize. `src/lib/features.ts` startup check (FeatureNotice in app.tsx). Version: `__APP_VERSION__` define from package.json; Gradle derives versionName/versionCode (MAJOR*10000+MINOR*100+PATCH, `ANDROID_VERSION_CODE` override; twin in `scripts/lib/android-version.ts`, tested). App id/name in `app.config.json` (Capacitor + Gradle). Native customisations are listed in docs/ANDROID.md; keep that list current.
 - **Design:** reference-book look, warm off-white/near-black, one vermilion accent, hairline borders, 2–4px radii, no gradients/glassmorphism/emoji. Icons only from Lucide via `src/components/icons.ts`. Touch targets ≥44px; 16px inputs on narrow screens. Self-hosted subset fonts.
 
 ## Key decisions
@@ -71,4 +83,5 @@ npx tsx scripts/diagnose-pitch.ts         # writes reports/pitch-diagnosis.md
 - `DB_VERSION` (`db.ts`) and `EXPORT_VERSION` (`transfer.ts`) are both 6; upgrades and the export format are covered by `tests/db.test.ts` and `tests/transfer.test.ts`. History: DB v3 folded syllable notes into tone notes (+ `legacyNotes`), v4 dropped the lesson-times store, v5 added `practiceHistory`, v6 dropped the per-cell audio preference store. Older export files import; unknown fields are dropped.
 - User-facing text is written for learners: no build or data-source wording (attested, verified, sources, generated, cells, clips), no explanation of missing audio (just "No recording"), UK spelling, sentence case. The user's own audio is a "recording" everywhere (new ones are named "Recording N"; the native audio is "native recording"). Single-source syllables show as "Rare". Developer docs (README, reports, scripts) may stay technical.
 - Settings rows whose names the app no longer knows (an old `accent` / `customAccent`, `showPractice`) are ignored by `settingsFrom` and deleted at load.
+- Android (Round 11): Capacitor 8.6.2 with only official plugins (app, filesystem, share, splash-screen; SystemBars from core), versions exact. minSdk 24, target/compile 36, AGP 8.13.0, Gradle 8.14.3, JDK 21. Permissions RECORD_AUDIO + MODIFY_AUDIO_SETTINGS only; **no INTERNET** (debug manifest adds it and cleartext for live reload). `allowBackup=false` (in-app backup is the route). SystemBars `insetsHandling: 'native'` + `EdgeToEdge.enable`. Splash auto-hides at 4 s as a safety net; the app hides it after first render. Exports go to the share sheet (cancel → "The backup was not saved."). Never set `server.url`; never create or commit keystores (signing from gitignored `android/keystore.properties` or env). Release workflow is manual and gated on repo variable `ANDROID_RELEASE_ENABLED`.
 - Only exception to the no-localStorage rule: `pinyin-chart-appearance` caches the resolved appearance for the first paint; IndexedDB stays the source of truth.

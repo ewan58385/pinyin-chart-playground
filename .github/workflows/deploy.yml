@@ -1,10 +1,10 @@
-# Builds the app and publishes it to GitHub Pages on every push to main.
+# Builds the web app and publishes it to GitHub Pages. Manual only (since the Android
+# app): Actions > "Deploy to GitHub Pages" > Run workflow. Pushing to main no longer
+# publishes the site; the CI workflow still tests every push.
 # One-time setup: repository Settings > Pages > Build and deployment > Source: "GitHub Actions".
 name: Deploy to GitHub Pages
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:

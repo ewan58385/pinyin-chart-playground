@@ -58,6 +58,101 @@ export const SOFTWARE_PACKAGES: { name: string; provides: string }[] = [
   { name: 'workbox-strategies', provides: 'Keeps the app working offline' },
   { name: 'vite-plugin-pwa', provides: 'Installs updates of the app' },
   { name: 'vite', provides: 'Loads the app’s files' },
+  { name: '@capacitor/core', provides: 'Runs the app on Android' },
+  { name: '@capacitor/android', provides: 'Runs the app on Android' },
+  { name: '@capacitor/app', provides: 'The Android back button and the app version' },
+  { name: '@capacitor/filesystem', provides: 'Prepares backups and Anki files for sharing on Android' },
+  { name: '@capacitor/share', provides: 'Sends backups and Anki files to other apps on Android' },
+  { name: '@capacitor/splash-screen', provides: 'The launch screen on Android' },
+];
+
+/**
+ * Libraries compiled into the Android app (android/app, resolved by Gradle). Licences
+ * read from each library's published POM file and, for ion-android-filesystem, its
+ * LICENSE file; Apache Cordova's NOTICE is reproduced as Apache-2.0 section 4(d) asks.
+ */
+const ANDROID_LIBRARIES: Credit[] = [
+  {
+    id: 'androidx',
+    group: 'software',
+    name: 'AndroidX (Android Jetpack libraries)',
+    url: 'https://developer.android.com/jetpack/androidx',
+    provides: 'Android app: windows, launch screen, back gesture and file sharing',
+    holder: 'The Android Open Source Project',
+    licence: 'Apache License 2.0',
+    licenceUrl: 'https://www.apache.org/licenses/LICENSE-2.0',
+    licenceText: 'licences/apache-2.0.txt',
+  },
+  {
+    id: 'kotlin',
+    group: 'software',
+    name: 'Kotlin standard library and kotlinx.coroutines',
+    url: 'https://kotlinlang.org',
+    provides: 'Android app: used by the libraries above',
+    holder: 'JetBrains s.r.o. and Kotlin Programming Language contributors',
+    licence: 'Apache License 2.0',
+    licenceUrl: 'https://www.apache.org/licenses/LICENSE-2.0',
+    licenceText: 'licences/apache-2.0.txt',
+  },
+  {
+    id: 'cordova-android',
+    group: 'software',
+    name: 'Apache Cordova Android framework',
+    url: 'https://cordova.apache.org',
+    version: '14.0.1',
+    provides: 'Android app: part of the Capacitor runtime',
+    holder: 'The Apache Software Foundation',
+    licence: 'Apache License 2.0',
+    licenceUrl: 'https://www.apache.org/licenses/LICENSE-2.0',
+    licenceText: 'licences/apache-2.0.txt',
+    notes: ['NOTICE: Apache Cordova. Copyright 2015-2020 The Apache Software Foundation. This product includes software developed at The Apache Software Foundation (http://www.apache.org/).'],
+  },
+  {
+    id: 'guava-listenablefuture',
+    group: 'software',
+    name: 'Guava ListenableFuture',
+    url: 'https://github.com/google/guava',
+    version: '1.0',
+    provides: 'Android app: used by the libraries above',
+    holder: 'The Guava Authors',
+    licence: 'Apache License 2.0',
+    licenceUrl: 'https://www.apache.org/licenses/LICENSE-2.0',
+    licenceText: 'licences/apache-2.0.txt',
+  },
+  {
+    id: 'jetbrains-annotations',
+    group: 'software',
+    name: 'JetBrains Java Annotations',
+    url: 'https://github.com/JetBrains/java-annotations',
+    provides: 'Android app: used by the libraries above',
+    holder: 'JetBrains s.r.o.',
+    licence: 'Apache License 2.0',
+    licenceUrl: 'https://www.apache.org/licenses/LICENSE-2.0',
+    licenceText: 'licences/apache-2.0.txt',
+  },
+  {
+    id: 'jspecify',
+    group: 'software',
+    name: 'JSpecify',
+    url: 'https://jspecify.dev',
+    version: '1.0.0',
+    provides: 'Android app: used by the libraries above',
+    holder: 'The JSpecify Authors',
+    licence: 'Apache License 2.0',
+    licenceUrl: 'https://www.apache.org/licenses/LICENSE-2.0',
+    licenceText: 'licences/apache-2.0.txt',
+  },
+  {
+    id: 'ion-android-filesystem',
+    group: 'software',
+    name: 'ion-android-filesystem',
+    url: 'https://github.com/ionic-team/ion-android-filesystem',
+    version: '1.1.1',
+    provides: 'Android app: writes the files you share',
+    holder: 'Ionic',
+    licence: 'MIT',
+    licenceText: 'licences/ion-android-filesystem-MIT.txt',
+  },
 ];
 
 interface PackageInfo {
@@ -199,6 +294,7 @@ export const CREDITS: Credit[] = [
       licenceText: `npm:${name}`,
     }),
   ),
+  ...ANDROID_LIBRARIES,
 ];
 
 /** Plain-text attribution lines for the credits with the given ids, for READMEs that travel with the data. */

@@ -12,3 +12,11 @@ dev-dist/
 
 # The adapted recordings are copied into open-data/ only when publishing it (npm run data:open -- --audio).
 /open-data/audio/
+
+# Android signing material: never committed (docs/RELEASING.md).
+*.jks
+*.keystore
+*.p12
+keystore.properties
+# Android SDK location written by Android Studio.
+local.properties

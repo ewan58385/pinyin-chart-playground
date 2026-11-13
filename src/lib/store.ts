@@ -19,6 +19,7 @@ import * as db from './db';
 import { APPEARANCE_CACHE_KEY } from './theme';
 import { clearAudioCache, stopPlayback } from './audio';
 import type { LearnStatus, Override, RecordingMeta, ToneNote } from './db';
+import { platform, type StorageReport } from '../platform';
 
 // ───────────────────────── settings ─────────────────────────
 
@@ -126,11 +127,8 @@ export const overrides = signal<Record<string, Override>>({});
 export const recordings = signal<RecordingMeta[]>([]);
 export const settings = signal<Settings>({ ...DEFAULT_SETTINGS });
 
-/** null = not asked yet or unsupported; true/false = the browser's answer. */
-export const persistence = signal<{ supported: boolean; granted: boolean | null; usage?: number; quota?: number }>({
-  supported: false,
-  granted: null,
-});
+/** Where the user's data is kept and whether the browser has agreed to keep it (see StorageReport). */
+export const persistence = signal<StorageReport>({ kind: platform.isNative ? 'app' : 'browser', canRequest: false, persisted: null });
 export const memoryOnly = signal(false);
 export const toast = signal<{ text: string; kind: 'info' | 'error'; id: number } | null>(null);
 
@@ -197,29 +195,9 @@ export async function resetAllData(): Promise<void> {
   await loadUserData();
 }
 
-/** Report whether storage is already persistent. Never prompts. */
+/** Report where the data is kept and whether it may be cleared. Never prompts. */
 export async function checkPersistence(): Promise<void> {
-  const storage = typeof navigator === 'undefined' ? undefined : navigator.storage;
-  if (!storage?.persist) {
-    persistence.value = { supported: false, granted: null };
-    return;
-  }
-  let granted: boolean | null = null;
-  try {
-    if (await storage.persisted()) granted = true;
-  } catch {
-    /* leave as unknown */
-  }
-  persistence.value = { supported: true, granted, ...(await usage()) };
-}
-
-async function usage(): Promise<{ usage?: number; quota?: number }> {
-  try {
-    const { usage, quota } = await navigator.storage.estimate();
-    return { usage, quota };
-  } catch {
-    return {};
-  }
+  persistence.value = await platform.storageStatus();
 }
 
 let asked = false;
@@ -230,15 +208,10 @@ let asked = false;
  * from the "Ask again" button on the My data page.
  */
 export async function requestPersistence(force = false): Promise<void> {
-  const storage = typeof navigator === 'undefined' ? undefined : navigator.storage;
-  if (!storage?.persist || (asked && !force) || persistence.value.granted) return;
+  const p = persistence.value;
+  if (p.kind === 'app' || (asked && !force) || p.persisted) return;
   asked = true;
-  try {
-    const granted = (await storage.persisted()) || (await storage.persist());
-    persistence.value = { supported: true, granted, ...(await usage()) };
-  } catch {
-    persistence.value = { supported: true, granted: false };
-  }
+  persistence.value = await platform.requestPersistentStorage();
 }
 
 async function guarded(fn: () => Promise<void>): Promise<boolean> {

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "build:native": "tsc --noEmit && vite build --mode native",
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
@@ -16,9 +17,23 @@
     "data:icons": "python3 scripts/build-icons.py",
     "data:notices": "tsx scripts/build-notices.ts",
     "data:open": "tsx scripts/build-open-data.ts",
-    "data:all": "npm run data:sources && npm run data:build && npm run data:audio && npm run data:fonts && npm run data:notices && npm run data:open"
+    "data:all": "npm run data:sources && npm run data:build && npm run data:audio && npm run data:fonts && npm run data:notices && npm run data:open",
+    "check:native": "tsx scripts/check-native-config.ts",
+    "android:sync": "npm run build:native && cap sync android",
+    "android:debug": "npm run android:sync && tsx scripts/gradle.ts assembleDebug",
+    "android:bundle": "npm run android:sync && npm run check:native && tsx scripts/gradle.ts bundleRelease",
+    "android:apk": "tsx scripts/require-signing.ts && npm run android:sync && npm run check:native && tsx scripts/gradle.ts assembleRelease",
+    "android:open": "cap open android",
+    "android:livereload": "tsx scripts/android-livereload.ts",
+    "android:assets": "tsx scripts/android-assets.ts"
   },
   "dependencies": {
+    "@capacitor/android": "8.6.2",
+    "@capacitor/app": "8.1.2",
+    "@capacitor/core": "8.6.2",
+    "@capacitor/filesystem": "8.1.5",
+    "@capacitor/share": "8.0.3",
+    "@capacitor/splash-screen": "8.0.2",
     "@preact/signals": "^2.11.4",
     "fflate": "^0.8.3",
     "idb": "^8.0.4",
@@ -26,6 +41,8 @@
     "preact": "^11.2.0"
   },
   "devDependencies": {
+    "@capacitor/assets": "4.0.0",
+    "@capacitor/cli": "8.6.2",
     "@preact/preset-vite": "^2.10.6",
     "@types/node": "^26.6.6",
     "fake-indexeddb": "^6.2.8",
@@ -39,6 +56,6 @@
   },
   "description": "An interactive Mandarin pinyin chart: native audio, example characters, your own notes and recordings. Offline-first PWA.",
   "engines": {
-    "node": ">=20.19"
+    "node": ">=22"
   }
 }

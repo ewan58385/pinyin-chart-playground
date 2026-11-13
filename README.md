@@ -2,11 +2,11 @@
 
 An interactive Mandarin pinyin chart for personal study. Every syllable and tone has native audio, an example character with example words, and your own notes and recordings with A/B comparison.
 
-It is a static site and an installable PWA. There is no account and no backend: everything you add stays in your browser, and one zip moves it between devices.
+It is a static site and an installable PWA, and the same code is packaged as an Android app (see [Android](#android)). There is no account and no backend: everything you add stays on your device, and one zip moves it between devices.
 
 ## Run it
 
-Needs Node 20.19 or newer.
+Needs Node 22 or newer (`.nvmrc`).
 
 ```sh
 npm install
@@ -28,7 +28,7 @@ Either host works. Both give you HTTPS, which recording and offline use require.
 
 1. Create a repository on GitHub and push this folder to its `main` branch.
 2. In the repository, open **Settings → Pages** and set **Source** to **GitHub Actions**.
-3. The included workflow (`.github/workflows/deploy.yml`) runs on every push to `main`: it runs the tests, builds, publishes `dist/`, then loads the published page and fails the run if it is not the built app.
+3. The included workflow (`.github/workflows/deploy.yml`) is **run by hand**: open **Actions → Deploy to GitHub Pages → Run workflow**. It runs the tests, builds, publishes `dist/`, then loads the published page and fails the run if it is not the built app. Pushing to `main` does **not** publish the site (it did until the Android app was added); every push still runs the CI workflow (`.github/workflows/ci.yml`: typecheck, tests, web and native builds, Android debug APK).
 
    If Source is left at **Deploy from a branch**, GitHub also publishes the repository itself on every push. Its `index.html` points at `/src/main.tsx`, which only exists in development, so whenever that deployment finishes after the workflow's, the site shows only "Pinyin Chart is starting…". The workflow's last step catches this; the fix is to set Source to **GitHub Actions** and re-run the workflow.
 4. The site appears at `https://<your-username>.github.io/<repository-name>/`.
@@ -42,6 +42,27 @@ The workflow sets `BASE_PATH=/<repository-name>/` so asset URLs resolve under th
 3. Deploy. The site is served from the root of `<project>.pages.dev`, so leave `BASE_PATH` unset.
 
 Without Git: `npm run build`, then `npx wrangler pages deploy dist --project-name pinyin-chart`.
+
+## Android
+
+The Android app is the same web code built in a native mode (`npm run build:native`: no service worker, audio and fonts inside the app) and packaged with [Capacitor](https://capacitorjs.com) 8. A small platform layer (`src/platform/`) handles what differs: saving files goes to the share sheet, the back button closes the open sheet or menu before leaving the page, links to other sites open in the browser, the microphone permission has its own messages, and the system bars follow the theme. The app asks for the microphone and nothing else. It has no internet permission.
+
+```sh
+npm run android:debug     # debug APK: android/app/build/outputs/apk/debug/app-debug.apk (no key needed)
+npm run android:bundle    # release AAB for Google Play (signed when an upload key is configured)
+npm run android:apk       # signed release APK, for testing on a phone only
+npm run android:livereload  # live reload on an emulator or USB phone
+npm run android:open      # open the project in Android Studio
+```
+
+Google Play needs the AAB; APKs are only for testing. Needs JDK 21 and the Android SDK (platform 36). The app id is still the placeholder `com.example.pinyinchart` (`app.config.json`), and it cannot change after the first upload to Play.
+
+- [docs/ANDROID.md](docs/ANDROID.md): setup, versions and why, architecture, plugins, native customisations, icons and splash
+- [docs/RELEASING.md](docs/RELEASING.md): versions, the upload key, signing, building and uploading
+- [docs/DEVICE_QA.md](docs/DEVICE_QA.md): the device checklist and the last results
+- [docs/UPGRADING.md](docs/UPGRADING.md): upgrading Capacitor, Gradle, the JDK and the target SDK
+- [docs/PLAY_STORE.md](docs/PLAY_STORE.md): the Play Console checklist (a free app can never become paid)
+- [docs/PRIVACY.md](docs/PRIVACY.md): privacy policy template to fill in and host
 
 ## Install to the home screen
 
@@ -139,24 +160,31 @@ src/data/            initials, finals, blocks, categories, learn (the stages), t
 src/data/generated/  syllables.json, cells.json, char-index.json, audio-index.json (built by scripts)
 src/lib/             pinyin spelling, IndexedDB, state, audio player and cache, recorder, pitch tracker (pitch.ts) and overlay axis (overlay.ts), export/import
 src/components/      chart, detail view, syllable card, overview / group / browse / learn pages, navigation
+src/platform/        what differs between the web and the Android app (files, back button, links, microphone, bars, version, storage)
 src/styles/          tokens and layout; fonts.css is generated
-scripts/             data, audio, font and icon builders; curation.ts; diagnose-pitch
-tests/               data invariants, pinyin logic, pitch tracker, contrast, routes and breadcrumbs, stages and progress, stage pictures, categories, scopes, Forvo links, the audio index, links to removed pages, database upgrade and backup round trip, export format
+scripts/             data, audio, font and icon builders; curation.ts; diagnose-pitch; Android helpers (gradle, live reload, assets, config check)
+tests/               platform layer, back button, Android version rule, data invariants, pinyin logic, pitch tracker, contrast, routes and breadcrumbs, stages and progress, stage pictures, categories, scopes, Forvo links, the audio index, links to removed pages, database upgrade and backup round trip, export format
 public/audio/        the native clips
 audio-manifest.json  attribution for every clip
-licences/            licence texts read from the sources (Unicode License v3, the MIT notices of the HSK lists)
+licences/            licence texts read from the sources (Unicode License v3, Apache-2.0, the MIT notices of the HSK lists and ion-android-filesystem)
+android/             the Capacitor Android project (generated, plus the customisations listed in docs/ANDROID.md)
+assets/              sources for the Android launcher icon and launch screen (npm run android:assets)
+app.config.json      app id and name, read by Capacitor and Gradle
+docs/                Android, releasing, upgrading, device QA, Play Store checklist, privacy policy template
 open-data/           the CC BY-SA data and manifest, with LICENSE and README, to publish separately
 THIRD_PARTY_NOTICES.md  every bundled component and its licence (generated)
-reports/             data-report.md, audio-coverage.md, pitch-diagnosis.md
+reports/             data-report.md, audio-coverage.md, pitch-diagnosis.md; android-qa/ screenshots from the last device QA
 ```
 
 ## What has and has not been tested
 
 Tested in a real browser (Firefox 159, headless, with a simulated microphone, at 1440×900 and 390×844, light and dark): native playback across tones (ma1, fa2, o2, xin3, ju4, he4), recording and saving your recordings, best recording, rename, native-then-mine comparison with the pitch overlay, every segmented control in Settings and the tone panel (at 1440, 390, 360 and 320 px, Normal and Larger text), the Initials and Finals overview spacing, the card key on group and Browse pages, the About page, page titles, Reset app (confirm step, Escape, export from the warning, everything gone at once, audio kept, app usable after), no sideways page scroll at 320, 360, 390, 768 and 1440 px with Normal and Larger text on every page, the overview, group, browse and learn pages (all nine stages with their fact lists and chart pictures, left-aligned, no sideways page scroll on a phone), the Finals / Initials panel (folding and unfolding with the keyboard, the folded state surviving a reload, the phone strip's labels on the same line as their items), breadcrumbs, old links to the removed section landing on Learn, the phone tab bar and bottom sheet, notes autosave, status and heatmap, character edits, search, keyboard navigation, the back button, backup (status, note, recording and edited character), wiping the database, restoring, restoring the same file again (nothing added), a malformed zip, Anki export, the old audio cache being deleted, downloading all audio, and loading and playing with the server stopped.
 
+Android: tested on an Android 16 emulator (debug and release builds), covering the back button, insets, keyboard, theme, microphone permission, recording, export through the share sheet, restore through the file picker, external links and live reload. Results and what is still unverified are in [docs/DEVICE_QA.md](docs/DEVICE_QA.md).
+
 Not tested, because no device was available:
 
-- **iOS Safari and Android Chrome on a phone.** The code follows the known requirements (one shared audio element started from a tap, MP4/AAC accepted and preferred for recording, the stored MIME type used on playback, 16 px inputs so the page does not zoom), but please run through record → compare → export on your iPhone once.
+- **iOS Safari, Android Chrome, and the Android app on a real phone.** The code follows the known requirements (one shared audio element started from a tap, MP4/AAC accepted and preferred for recording, the stored MIME type used on playback, 16 px inputs so the page does not zoom), but please run through record → compare → export on your iPhone once.
 - **Chrome and Safari on desktop.** Nothing browser-specific is used beyond MediaRecorder, IndexedDB, Cache Storage and Web Audio.
 - **Recordings crossing browsers.** The app asks the browser for MP4/AAC first because it plays everywhere; Safari records it, and recent Chrome should too. Firefox records WebM/Opus only, which some iOS versions cannot play, so a take recorded in Firefox may be silent on an iPhone. If playback fails the app says so rather than failing silently.
 

@@ -24,6 +24,13 @@ const EVIDENCE: Record<string, string> = {
   'hanyu-shuiping-kaoshi': 'LICENSE file of github.com/gigacool/hanyu-shuiping-kaoshi (MIT, © 2018 gigacool).',
   hsk30: 'LICENSE file of github.com/elkmovie/hsk30 (MIT, © 2021 Pleco Inc.). Its README: extracted from the official HSK 3.0 PDF published by the Ministry of Education of China.',
   lucide: 'LICENSE file of the installed lucide-preact package (ISC; Feather-derived icons MIT).',
+  androidx: 'The <licenses> element of each AndroidX artifact’s POM in the Gradle cache (e.g. androidx.core:core 1.17.0, androidx.appcompat:appcompat 1.7.1): "The Apache Software License, Version 2.0". Full text from https://www.apache.org/licenses/LICENSE-2.0.txt.',
+  kotlin: 'POMs of org.jetbrains.kotlin:kotlin-stdlib 2.2.20 and org.jetbrains.kotlinx:kotlinx-coroutines-core/-android 1.10.2: "Apache-2.0".',
+  'cordova-android': 'POM of org.apache.cordova:framework 14.0.1: "Apache License, Version 2.0"; NOTICE file of github.com/apache/cordova-android at tag rel/14.0.1.',
+  'guava-listenablefuture': 'POM of com.google.guava:listenablefuture 1.0 and its parent guava-parent 26.0-android: "The Apache Software License, Version 2.0".',
+  'jetbrains-annotations': 'POM of org.jetbrains:annotations 23.0.0: "The Apache Software License, Version 2.0".',
+  jspecify: 'POM of org.jspecify:jspecify 1.0.0: "The Apache License, Version 2.0".',
+  'ion-android-filesystem': 'POM of io.ionic.libs:ionfilesystem-android 1.1.1 points to the LICENSE file of github.com/ionic-team/ion-android-filesystem: MIT, © 2025 Ionic.',
 };
 
 // ───────────────────────── npm packages ─────────────────────────

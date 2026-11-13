@@ -13,6 +13,8 @@ import { App } from './app';
 import { ErrorBoundary, StartupError } from './components/StartupError';
 import { loadUserData, checkPersistence, ready } from './lib/store';
 import { purgeStaleAudioCaches, refreshCachedCount } from './lib/audio';
+import { listenForSystemBack } from './lib/systemBack';
+import { platform } from './platform';
 
 // index.html puts a plain "starting" notice in #app so the screen is never blank
 // while the script loads (or if it cannot load); it is replaced here.
@@ -31,6 +33,9 @@ try {
   render(<StartupError />, root);
 }
 
+// Android: the back button closes what is open, then steps back, then leaves the app.
+listenForSystemBack();
+
 void loadUserData()
   .catch((err) => {
     // Reading stored data should not fail (loadUserData guards each store), but if it
@@ -44,8 +49,15 @@ void loadUserData()
     void checkPersistence();
     // Audio buckets from earlier releases are dropped before counting what is cached.
     void purgeStaleAudioCaches().then(refreshCachedCount);
+  })
+  .finally(() => {
+    // The launch screen (Android) stays up until the first screen is drawn in the
+    // saved theme, so there is no flash of the wrong colours.
+    requestAnimationFrame(() => platform.appReady());
   });
 
 // The service worker makes the app shell, chart data and fonts available offline.
 // A new version installs in the background and takes over on the next visit.
-registerSW({ immediate: true });
+// The Android app has everything inside it and updates through the store: no service worker
+// (the native build also turns the plugin off, so this import is a no-op there).
+if (!platform.isNative) registerSW({ immediate: true });

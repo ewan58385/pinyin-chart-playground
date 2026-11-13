@@ -3,6 +3,7 @@ import { route, openSyllable, type Page } from '../lib/router';
 import { filtersActive, filtersOpen, resolveExample, setSetting, settings, type Settings } from '../lib/store';
 import { search, loadCharIndex, type SearchHit } from '../lib/search';
 import { toneMark } from '../lib/pinyin';
+import { useBackLayer } from '../lib/back';
 import { Search as SearchIcon, FiltersIcon, Flip, More, Density, Sun, Moon, Monitor, Eye, EyeOff, Check, ChartIcon, FinalsIcon, InitialsIcon, LearnIcon, Database } from './icons';
 
 interface NavItem {
@@ -83,6 +84,13 @@ function SearchBox() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
+
+  // The system back button (Android) closes the results first, as Escape does.
+  useBackLayer(open && q.trim() !== '', () => {
+    setOpen(false);
+    setQ('');
+    inputRef.current?.blur();
+  });
 
   const go = (h: SearchHit) => {
     openSyllable(h.syllable.id, h.tone);
@@ -165,6 +173,7 @@ const next = <T,>(list: T[], current: T): T => list[(list.indexOf(current) + 1) 
 function Menu({ onClose }: { onClose: () => void }) {
   const s = settings.value;
   const ref = useRef<HTMLDivElement>(null);
+  useBackLayer(true, onClose);
   useEffect(() => {
     const onDown = (e: Event) => {
       if (!ref.current?.contains(e.target as Node) && !(e.target as HTMLElement).closest('[data-menu-button]')) onClose();

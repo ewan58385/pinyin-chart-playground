@@ -1,0 +1,45 @@
+# Weekly dependency update pull requests. Capacitor packages must move together (same
+# major, and @capacitor/android must match @capacitor/core), so they are grouped; follow
+# docs/UPGRADING.md before merging a major Capacitor, Android Gradle Plugin or Gradle update.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      capacitor:
+        patterns:
+          - '@capacitor/*'
+      preact:
+        patterns:
+          - 'preact'
+          - '@preact/*'
+      build-tools:
+        patterns:
+          - 'vite'
+          - 'vitest'
+          - 'vite-plugin-pwa'
+          - 'workbox-*'
+          - 'typescript'
+          - 'tsx'
+
+  - package-ecosystem: gradle
+    directory: /android
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      android-gradle:
+        patterns:
+          - '*'
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns:
+          - '*'

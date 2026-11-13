@@ -4,3 +4,9 @@
  * Credits and licences page does not show the "Get the data and recordings" link.
  */
 export const OPEN_DATA_URL = "https://github.com/ewan58385/open-data";
+
+/**
+ * Public address of the privacy policy (docs/PRIVACY.md, once hosted). Google Play asks
+ * for it in the store listing and inside the app; while empty, the About page shows no link.
+ */
+export const PRIVACY_POLICY_URL = "";

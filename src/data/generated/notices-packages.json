@@ -71,6 +71,42 @@
   "holder": "2019-present, VoidZero Inc. and Vite contributors",
   "url": "https://vite.dev"
  },
+ "@capacitor/core": {
+  "version": "8.6.2",
+  "licence": "MIT",
+  "holder": "2017-present Drifty Co.",
+  "url": "https://capacitorjs.com"
+ },
+ "@capacitor/android": {
+  "version": "8.6.2",
+  "licence": "MIT",
+  "holder": "2017-present Drifty Co.",
+  "url": "https://capacitorjs.com"
+ },
+ "@capacitor/app": {
+  "version": "8.1.2",
+  "licence": "MIT",
+  "holder": "2020-present Ionic",
+  "url": "https://github.com/ionic-team/capacitor-plugins"
+ },
+ "@capacitor/filesystem": {
+  "version": "8.1.5",
+  "licence": "MIT",
+  "holder": "2025 Ionic",
+  "url": "https://github.com/ionic-team/capacitor-filesystem"
+ },
+ "@capacitor/share": {
+  "version": "8.0.3",
+  "licence": "MIT",
+  "holder": "2020-present Ionic",
+  "url": "https://github.com/ionic-team/capacitor-plugins"
+ },
+ "@capacitor/splash-screen": {
+  "version": "8.0.2",
+  "licence": "MIT",
+  "holder": "2020-present Ionic",
+  "url": "https://github.com/ionic-team/capacitor-plugins"
+ },
  "lucide-preact": {
   "version": "1.72.0",
   "licence": "ISC",

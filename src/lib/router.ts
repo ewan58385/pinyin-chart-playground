@@ -21,8 +21,16 @@ export const route = signal<Route>(current());
 /** The open syllable only, so the chart does not redraw when just the tone changes. */
 export const openId = computed(() => route.value.syllable);
 
+/**
+ * True while the open syllable's history entry was added by openSyllable on the page
+ * underneath, so closing it can step back to that page instead of leaving two entries
+ * for the same page (which made the next Back press look as if it did nothing).
+ */
+let sheetPushed = false;
+
 window.addEventListener('hashchange', () => {
   route.value = current();
+  if (!route.value.syllable) sheetPushed = false;
 });
 
 export function goPage(page: Page) {
@@ -45,6 +53,7 @@ export function openSyllable(syllable: string, tone: Tone | null = null) {
     history.replaceState(null, '', hashFor(next));
     route.value = next;
   } else {
+    sheetPushed = hasPanel(r);
     location.hash = hashFor(next);
   }
 }
@@ -58,6 +67,12 @@ export function selectTone(tone: Tone) {
 }
 
 export function closeSyllable() {
+  if (sheetPushed) {
+    // Back to the entry openSyllable came from: the same page without the syllable.
+    sheetPushed = false;
+    history.back();
+    return;
+  }
   const next: Route = { ...route.value, syllable: null, tone: null };
   history.replaceState(null, '', hashFor(next));
   route.value = next;

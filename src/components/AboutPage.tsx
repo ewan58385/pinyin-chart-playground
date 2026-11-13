@@ -1,5 +1,8 @@
 import { AUDIO_CLIPS_BY_TONE, AUDIO_SOURCES, AUDIO_TOTAL_BYTES, DATA_META, SYLLABLES, hasNativeAudio } from '../data';
+import { useEffect, useState } from 'preact/hooks';
 import { totalClipCount } from '../lib/audio';
+import { platform, type AppVersion } from '../platform';
+import { PRIVACY_POLICY_URL } from '../config';
 
 const Ext = ({ href, children }: { href: string; children: preact.ComponentChildren }) => (
   <a href={href} target="_blank" rel="noopener noreferrer">
@@ -11,6 +14,10 @@ const n = (x: number) => x.toLocaleString('en-GB');
 const audio = Object.values(AUDIO_SOURCES)[0];
 
 export function AboutPage() {
+  const [version, setVersion] = useState<AppVersion>({ version: __APP_VERSION__ });
+  useEffect(() => {
+    void platform.appVersion().then(setVersion);
+  }, []);
   const c = DATA_META.counts;
   const tones = c.toneCellsStandard + c.toneCellsNeutralInWord;
   // Tones without a native recording, among those shown by default.
@@ -64,7 +71,8 @@ export function AboutPage() {
             shows where its syllables sit on the chart, and lets you listen to them and mark how well you know them. Nothing is locked.
           </li>
           <li>
-            <a href="#/data">My data</a>: what is saved on this device, recordings for offline use, Anki cards, backup and restore.
+            <a href="#/data">My data</a>: what is saved on this device, {platform.bundledAudio ? '' : 'recordings for offline use, '}Anki cards, backup and
+            restore.
           </li>
         </ul>
       </section>
@@ -121,6 +129,15 @@ export function AboutPage() {
         <p class="hint">
           The “Hear it on Forvo” links open <Ext href="https://forvo.com/languages/zh/">forvo.com</Ext>, a separate website with recordings from its own
           community.
+        </p>
+        {PRIVACY_POLICY_URL && (
+          <p>
+            <Ext href={PRIVACY_POLICY_URL}>Privacy policy</Ext>: nothing you add leaves this device unless you export it.
+          </p>
+        )}
+        <p class="hint about-version">
+          Version {version.version}
+          {version.build ? ` (build ${version.build})` : ''}
         </p>
       </section>
     </article>

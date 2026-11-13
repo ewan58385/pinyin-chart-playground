@@ -1,6 +1,7 @@
 import { FINAL_GROUPS } from '../data/finals';
 import { TAGS } from '../data/tags';
-import { EMPTY_FILTERS, filters, filtersActive, matches, toggleFilter, visibleSyllableCount, type Filters } from '../lib/store';
+import { EMPTY_FILTERS, filters, filtersActive, filtersOpen, matches, toggleFilter, visibleSyllableCount, type Filters } from '../lib/store';
+import { useBackLayer } from '../lib/back';
 
 function Chips<K extends 'statuses' | 'groups' | 'types' | 'difficulties' | 'tags'>({
   label,
@@ -32,6 +33,8 @@ const TAG_OPTIONS = TAGS.filter((t) => t.kind === 'spelling' || t.kind === 'init
 );
 
 export function FilterBar() {
+  // The system back button (Android) closes the panel before the page underneath.
+  useBackLayer(true, () => (filtersOpen.value = false));
   const f = filters.value;
   const count = Object.keys(matches.value).length;
   const total = visibleSyllableCount.value;

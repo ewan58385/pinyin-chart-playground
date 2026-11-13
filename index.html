@@ -42,13 +42,18 @@
           This is taking longer than it should.
           <button type="button" onclick="location.reload()" style="margin-left: 6px; min-height: 44px; padding: 0 16px; font: inherit; cursor: pointer">Reload</button>
         </p>
+        <p id="boot-webview" hidden style="margin: 12px 0 0">If it still does not open, update Android System WebView from Google Play, then open the app again.</p>
       </div>
     </div>
     <script>
       // If the app has not replaced the notice above after a few seconds, offer a reload.
       setTimeout(function () {
         var slow = document.getElementById('boot-slow');
-        if (slow && !document.querySelector('.app')) slow.hidden = false;
+        if (slow && !document.querySelector('.app')) {
+          slow.hidden = false;
+          // Inside the Android app the usual cause is an out-of-date system WebView.
+          if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) document.getElementById('boot-webview').hidden = false;
+        }
       }, 8000);
     </script>
     <noscript>Pinyin Chart needs JavaScript to run. Turn it on in your browser settings, then reload the page.</noscript>
