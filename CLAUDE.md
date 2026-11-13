@@ -8,7 +8,7 @@ Offline-first PWA: interactive Mandarin pinyin chart (Vite + TypeScript + Preact
 
 ## State
 
-As of 2026-11-13: `main` = `origin/main` at fdf9dd6 (Rounds 9 and 10 committed). Uncommitted in the working tree: Round 11, the Capacitor Android app (platform layer, `android/`, native build mode, back button, share-sheet export, microphone messages, icons/splash, CI/release/Dependabot workflows, deploy made manual, docs/, credits for Capacitor and Android libraries). Emulator QA results in docs/DEVICE_QA.md.
+As of 2026-11-13: `main` = `origin/main` at c238183 (Round 11, the Capacitor Android app, committed and pushed; pushing no longer deploys the web site, CI runs instead). Emulator QA results in docs/DEVICE_QA.md.
 
 Open questions for the user (Round 11):
 - **App id is the placeholder `com.example.pinyinchart`** (`app.config.json`): Play rejects it and it cannot change after the first upload.
