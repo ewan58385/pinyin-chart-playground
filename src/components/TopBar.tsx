@@ -21,18 +21,18 @@ const PAGES: NavItem[] = [
   { page: 'learn', label: 'Learn', href: '#/learn' },
   { page: 'data', label: 'My data', href: '#/data', sub: 'backup' },
 ];
-/** In the More menu on every screen. */
-const MORE: NavItem[] = [
+/** In the More menu on every screen. My data sits under Settings, so it is in the same place on phones and wide screens. */
+const MORE: (NavItem & { icon?: typeof ChartIcon })[] = [
   { page: 'settings', label: 'Settings', href: '#/settings' },
+  { page: 'data', label: 'My data', href: '#/data', icon: Database },
   { page: 'about', label: 'About', href: '#/about' },
 ];
-/** On phones the tab bar holds five destinations; the rest of the main navigation moves into the More menu. */
+/** On phones the tab bar holds four destinations; the rest of the main navigation moves into the More menu. */
 const TABS: (NavItem & { icon: typeof ChartIcon })[] = [
   { page: 'chart', label: 'Chart', href: '#/', icon: ChartIcon },
   { page: 'finals', label: 'Finals', href: '#/finals', icon: FinalsIcon },
   { page: 'initials', label: 'Initials', href: '#/initials', icon: InitialsIcon },
   { page: 'learn', label: 'Learn', href: '#/learn', icon: LearnIcon },
-  { page: 'data', label: 'My data', href: '#/data', icon: Database, sub: 'backup and restore' },
 ];
 
 /** Bottom tab bar, phones only (hidden by CSS on wide screens). */
@@ -42,7 +42,7 @@ export function TabBar() {
   return (
     <nav class="tabbar" aria-label="Sections" style={{ '--tabs': tabs.length }}>
       {tabs.map((t) => (
-        <a href={t.href} aria-current={page === t.page ? 'page' : undefined} aria-label={t.sub ? `${t.label}: ${t.sub}` : undefined}>
+        <a href={t.href} aria-current={page === t.page ? 'page' : undefined}>
           <t.icon size={20} aria-hidden="true" />
           <span>{t.label}</span>
         </a>
@@ -178,23 +178,35 @@ function Menu({ onClose }: { onClose: () => void }) {
     };
   }, []);
   const ThemeIcon = s.theme === 'dark' ? Moon : s.theme === 'light' ? Sun : Monitor;
-  // On phones: whatever of the main navigation is not in the tab bar.
-  const inTabs = new Set(TABS.map((t) => t.page));
-  const overflow = PAGES.filter((p) => !inTabs.has(p.page));
+  // On phones: whatever of the main navigation is in neither the tab bar nor the list below.
+  const placed = new Set([...TABS, ...MORE].map((t) => t.page));
+  const overflow = PAGES.filter((p) => !placed.has(p.page));
+  const here = route.value.page;
   return (
     <div class="menu" ref={ref} role="menu" aria-label="More">
       <div class="pages">
         {overflow.map((p) => (
-          <a class="menu-item" role="menuitem" href={p.href} onClick={onClose}>
+          <a class="menu-item" role="menuitem" href={p.href} aria-current={here === p.page ? 'page' : undefined} onClick={onClose}>
             {p.label}
-            {route.value.page === p.page && <Check size={16} class="state" aria-label="current page" />}
+            {here === p.page && <Check size={16} class="state" aria-label="current page" />}
           </a>
         ))}
       </div>
       {MORE.map((p) => (
-        <a class="menu-item" role="menuitem" href={p.href} onClick={onClose}>
+        <a
+          class="menu-item"
+          role="menuitem"
+          href={p.href}
+          aria-current={here === p.page ? 'page' : undefined}
+          onClick={() => {
+            onClose();
+            // Opening My data from the menu puts focus on its heading, so keyboard and screen-reader users start at the top of the page.
+            if (p.page === 'data') setTimeout(() => document.querySelector<HTMLElement>('.page h1')?.focus(), 60);
+          }}
+        >
+          {p.icon && <p.icon size={17} aria-hidden="true" />}
           {p.label}
-          {route.value.page === p.page && <Check size={16} class="state" aria-label="current page" />}
+          {here === p.page && <Check size={16} class="state" aria-label="current page" />}
         </a>
       ))}
       <hr />

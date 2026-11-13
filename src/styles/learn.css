@@ -547,6 +547,10 @@ a.btn.primary {
   max-width: 420px;
   margin-top: 8px;
 }
+/* Finals overview: the bar sits right under the group heading's rule, so it gets a little more room there. */
+.overview .member > .group-progress {
+  margin-top: 16px;
+}
 .pbar {
   display: flex;
   height: 11px;

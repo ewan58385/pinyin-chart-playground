@@ -139,7 +139,7 @@
   .tabbar {
     flex: none;
     display: grid;
-    grid-template-columns: repeat(var(--tabs, 5), 1fr);
+    grid-template-columns: repeat(var(--tabs, 4), 1fr);
     height: calc(var(--tab-h) + var(--safe-bottom));
     padding: 0 var(--safe-right) var(--safe-bottom) var(--safe-left);
     border-top: 1px solid var(--rule-strong);
