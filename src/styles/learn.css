@@ -1,0 +1,578 @@
+/* Overview, browse, learn and practice-session pages. */
+
+.overview .member h2,
+.member h2 {
+  flex-wrap: wrap;
+}
+.page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.practice-btn {
+  text-decoration: none;
+}
+.judgement {
+  margin-top: 8px;
+  max-width: 72ch;
+}
+
+/* Links styled as buttons keep the button's colours. */
+a.btn {
+  text-decoration: none;
+  color: var(--ink);
+}
+a.btn.primary {
+  color: var(--on-accent);
+}
+
+/* Lists of finals, initial groups and categories */
+.ov-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+.ov-list li {
+  display: grid;
+  grid-template-columns: minmax(92px, 130px) 1fr auto;
+  gap: 4px 14px;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.ov-list.wide li {
+  grid-template-columns: minmax(180px, 1.2fr) minmax(0, 2fr) auto;
+  align-items: start;
+}
+.ov-item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--ink);
+  text-decoration: none;
+}
+.ov-item .py {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: var(--rule-strong);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+.ov-item:hover .py {
+  color: var(--accent);
+  text-decoration-color: var(--accent);
+}
+.ov-item .eq {
+  color: var(--ink-3);
+  font-size: 12.5px;
+}
+.ov-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.ov-list .count {
+  color: var(--ink-3);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.ov-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ov-block small {
+  color: var(--ink-2);
+  font-size: 13px;
+  max-width: 46ch;
+}
+.ov-initials,
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.ov-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  min-height: 34px;
+  padding: 3px 10px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+}
+.ov-chip .py {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 600;
+}
+.ov-chip small {
+  color: var(--ink-3);
+  font-size: 11.5px;
+}
+.ov-chip:hover {
+  border-color: var(--accent);
+}
+.ov-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 18px;
+  margin-top: 12px;
+}
+.ov-notes {
+  margin-top: 8px;
+}
+.ov-notes > div {
+  display: grid;
+  grid-template-columns: minmax(120px, 170px) 1fr;
+  gap: 4px 14px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.ov-notes dd {
+  color: var(--ink-2);
+  font-size: 14px;
+}
+.yw-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  margin-top: 8px;
+  font-family: var(--font-serif);
+  font-size: 17px;
+}
+.yw-list small {
+  font-family: var(--font-sans);
+  color: var(--ink-3);
+  font-size: 12.5px;
+}
+
+/* Progress */
+.mini-progress {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 150px;
+  margin-left: auto;
+  font-family: var(--font-sans);
+  font-weight: 400;
+}
+.mini-progress.wide {
+  display: flex;
+  margin: 6px 0 0;
+  max-width: 420px;
+}
+.mini-progress .bar {
+  display: flex;
+  height: 5px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 1px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.mini-progress .bar i {
+  display: block;
+  height: 100%;
+}
+.mini-progress .bar .solid {
+  background: var(--solid);
+}
+.mini-progress .bar .shaky {
+  background: var(--shaky);
+}
+.mini-progress small {
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+/* Learn */
+.next-up {
+  margin-top: 16px;
+  padding: 14px 16px 16px;
+  border: 1px solid var(--rule-strong);
+  border-left: 2px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.next-up h2 {
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.next-title {
+  margin: 4px 0;
+  font-family: var(--font-serif);
+  font-size: 20px;
+}
+.revisit {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+}
+.revisit h3 {
+  margin-bottom: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.stage-list {
+  list-style: none;
+  margin: 8px 0 12px;
+  padding: 0;
+}
+.stage-list li {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.stage-list li.current {
+  box-shadow: inset 2px 0 0 var(--accent);
+  padding-left: 10px;
+}
+.stage-n {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--ink-3);
+  line-height: 1.2;
+}
+.stage-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.stage-body small {
+  color: var(--ink-2);
+  font-size: 13.5px;
+}
+.stage-kicker {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.stage-why {
+  margin-top: 8px;
+  max-width: 72ch;
+  color: var(--ink-2);
+}
+.tone-btn.aside {
+  opacity: 0.4;
+}
+
+/* Practice hub and guided session */
+.set-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  border-top: 1px solid var(--rule);
+}
+.set-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.set-list li.current {
+  box-shadow: inset 2px 0 0 var(--accent);
+  padding-left: 10px;
+}
+.set-what {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.set-what small {
+  color: var(--ink-3);
+  font-size: 12.5px;
+}
+.set-list .btn {
+  flex: none;
+  text-decoration: none;
+}
+.session-head h1 {
+  margin-bottom: 4px;
+}
+.session-count {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  font-weight: 500;
+}
+.session-count small {
+  color: var(--ink-3);
+  font-weight: 400;
+}
+.session-nav {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0 4px;
+  padding: 8px 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule-strong);
+  background: var(--paper);
+}
+.session-nav .btn {
+  text-decoration: none;
+}
+.session-what {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  line-height: 1.15;
+}
+.session-what .py {
+  font-family: var(--font-serif);
+  font-size: 24px;
+}
+.session-what small {
+  color: var(--ink-3);
+  font-size: 12px;
+}
+.session-noaudio {
+  margin-top: 8px;
+}
+.session-panel {
+  max-width: 560px;
+  margin-top: 4px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.session-panel .d-section {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+@media (max-width: 859px) {
+  .ov-list li,
+  .ov-list.wide li {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .ov-notes > div {
+    grid-template-columns: 1fr;
+  }
+  .mini-progress {
+    margin-left: 0;
+  }
+  .member h2 .mini-progress {
+    flex-basis: 100%;
+  }
+}
+@media (pointer: coarse) {
+  .ov-chip,
+  .ov-item {
+    min-height: 44px;
+    align-items: center;
+  }
+}
+
+/* ── One line saying what the page is for (Learn, Practice) ── */
+.purpose {
+  margin-top: 4px;
+  font-family: var(--font-serif);
+  font-size: 17px;
+  color: var(--ink);
+  max-width: 70ch;
+}
+.purpose + .lede {
+  margin-top: 6px;
+}
+.practice-link-btn {
+  text-decoration: none;
+}
+.session-about {
+  margin: 2px 0 6px;
+  font-size: 14px;
+}
+.study-intro {
+  margin-top: 12px;
+  max-width: 72ch;
+}
+
+/* ── Study card (Learn and Practice): one syllable per card, a row per tone ── */
+.study-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 760px;
+  margin-top: 10px;
+}
+.study-card {
+  min-width: 0;
+  padding: 10px 16px 6px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.session .study-card {
+  max-width: 560px;
+  margin-top: 8px;
+}
+.study-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  padding-bottom: 6px;
+}
+.study-syl {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+.study-parts {
+  color: var(--ink-3);
+  font-family: var(--font-serif);
+  font-size: 14px;
+}
+.study-action {
+  margin-left: auto;
+}
+.study-tones {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.study-tone {
+  display: grid;
+  grid-template-columns: 36px minmax(88px, auto) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 12px;
+  padding: 6px 0 6px 8px;
+  border-top: 1px solid var(--rule);
+  box-shadow: inset 3px 0 0 transparent;
+}
+.study-tone.s-shaky {
+  box-shadow: inset 3px 0 0 var(--shaky);
+}
+.study-tone.s-solid {
+  box-shadow: inset 3px 0 0 var(--solid);
+}
+.study-tone.current {
+  background: var(--accent-wash);
+}
+.study-tone.aside {
+  opacity: 0.45;
+}
+.study-tone .listen {
+  border: 1px solid var(--rule-strong);
+  background: var(--paper);
+}
+.study-what {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+.study-what .py {
+  font-family: var(--font-serif);
+  font-size: 19px;
+}
+.study-what .han {
+  font-family: var(--font-han);
+  font-size: 23px;
+  line-height: 1.1;
+}
+.study-gloss {
+  min-width: 0;
+  color: var(--ink-2);
+  font-size: 13.5px;
+  overflow-wrap: anywhere;
+}
+.study-status button {
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 13px;
+}
+@media (max-width: 600px) {
+  .study-card {
+    padding: 8px 12px 4px;
+  }
+  .study-tone {
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+  }
+  .study-gloss {
+    grid-column: 2 / 4;
+    grid-row: 2;
+  }
+}
+@media (pointer: coarse) {
+  .study-tone {
+    grid-template-columns: 44px minmax(88px, auto) minmax(0, 1fr) auto;
+  }
+  .study-status button {
+    min-height: 44px;
+  }
+}
+@media (pointer: coarse) and (max-width: 600px) {
+  .study-tone {
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+  }
+}
+
+/* ── Group progress on the Finals and Initials overviews ── */
+.group-progress {
+  max-width: 420px;
+  margin-top: 8px;
+}
+.pbar {
+  display: flex;
+  height: 11px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 2px;
+  background: var(--sunken);
+  overflow: hidden;
+}
+.pbar i {
+  display: block;
+  height: 100%;
+}
+.pbar .solid {
+  background: var(--solid);
+}
+.pbar .shaky {
+  background: var(--shaky);
+}
+.pbar-label {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  margin-top: 4px;
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+.pbar-label b {
+  font-weight: 600;
+  color: var(--ink);
+}
+.pbar-label .k-shaky {
+  color: var(--shaky);
+}

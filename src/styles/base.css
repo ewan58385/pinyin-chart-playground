@@ -1,0 +1,382 @@
+/* Tokens, reset and shared controls. */
+
+:root {
+  color-scheme: light;
+
+  --paper: #f7f4ee;
+  --surface: #fcfaf6;
+  --sunken: #efebe3;
+  --ink: #1d1b18;
+  --ink-2: #57524a;
+  --ink-3: #645e55;
+  --rule: #dcd6ca;
+  --rule-strong: #b9b1a2;
+  --accent: #b0372a;
+  --accent-strong: #8d2a20;
+  --accent-wash: #f4e3de;
+  --on-accent: #fffaf6;
+
+  --shaky: #7b590e;
+  --shaky-wash: #f1e2bd;
+  --solid: #3f6838;
+  --solid-wash: #d8e6d2;
+
+  /* 'Chart Han' follows each Latin face so that ∅ and any Chinese in running text use the bundled font too. */
+  --font-serif: 'Chart Serif', 'Chart Han', 'Source Serif 4', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --font-sans: 'Chart Sans', 'Chart Han', 'Source Sans 3', -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-han: 'Chart Han', 'Source Han Serif SC', 'Noto Serif CJK SC', 'Songti SC', 'STSong', 'SimSun', serif;
+
+  --radius: 3px;
+  --bar-h: 52px;
+  --focus: 2px solid var(--accent);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --paper: #171614;
+    --surface: #1e1c19;
+    --sunken: #121110;
+    --ink: #ece7dd;
+    --ink-2: #b7b0a3;
+    --ink-3: #958e82;
+    --rule: #34302b;
+    --rule-strong: #524c44;
+    --accent: #e27365;
+    --accent-strong: #f09284;
+    --accent-wash: #3a221e;
+    --on-accent: #1a0f0d;
+    --shaky: #dcb663;
+    --shaky-wash: #40351c;
+    --solid: #9cc194;
+    --solid-wash: #26372a;
+  }
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --paper: #171614;
+  --surface: #1e1c19;
+  --sunken: #121110;
+  --ink: #ece7dd;
+  --ink-2: #b7b0a3;
+  --ink-3: #958e82;
+  --rule: #34302b;
+  --rule-strong: #524c44;
+  --accent: #e27365;
+  --accent-strong: #f09284;
+  --accent-wash: #3a221e;
+  --on-accent: #1a0f0d;
+  --shaky: #dcb663;
+  --shaky-wash: #40351c;
+  --solid: #9cc194;
+  --solid-wash: #26372a;
+}
+
+/* ── Appearance hooks (set on <html> by src/lib/theme.ts) ── */
+
+/* Text size: four steps, applied as a zoom of the whole app so every px size follows. */
+.app {
+  zoom: var(--text-scale, 1);
+}
+
+/* Reduced motion: no transitions or animations anywhere. */
+:root[data-reduce-motion='true'] *,
+:root[data-reduce-motion='true'] *::before,
+:root[data-reduce-motion='true'] *::after {
+  transition: none !important;
+  animation: none !important;
+  scroll-behavior: auto !important;
+}
+
+/* Tone colours: pinyin carries data-tone="1".."5" where it is shown by tone. */
+:root[data-tones='standard'] [data-tone='1'],
+:root[data-tones='safe'] [data-tone='1'] {
+  color: var(--tone-1);
+}
+:root[data-tones='standard'] [data-tone='2'],
+:root[data-tones='safe'] [data-tone='2'] {
+  color: var(--tone-2);
+}
+:root[data-tones='standard'] [data-tone='3'],
+:root[data-tones='safe'] [data-tone='3'] {
+  color: var(--tone-3);
+}
+:root[data-tones='standard'] [data-tone='4'],
+:root[data-tones='safe'] [data-tone='4'] {
+  color: var(--tone-4);
+}
+:root[data-tones='standard'] [data-tone='5'],
+:root[data-tones='safe'] [data-tone='5'] {
+  color: var(--tone-5);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule-strong) transparent;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden; /* the app scrolls inside its own panes */
+}
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+h1,
+h2,
+h3,
+p,
+ul,
+ol,
+dl,
+dd,
+figure {
+  margin: 0;
+  padding: 0;
+}
+ul,
+ol {
+  list-style: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+button {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+a {
+  color: var(--accent-strong);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+:focus {
+  outline: none;
+}
+:focus-visible {
+  outline: var(--focus);
+  outline-offset: 1px;
+}
+
+.han {
+  font-family: var(--font-han);
+  font-weight: 500;
+}
+.py {
+  font-family: var(--font-serif);
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ── Controls ─────────────────────────────────────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 0.12s, border-color 0.12s;
+}
+.btn:hover {
+  border-color: var(--ink-2);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.btn.primary:hover {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+}
+.btn.quiet {
+  border-color: transparent;
+  background: none;
+}
+.btn.quiet:hover {
+  background: var(--sunken);
+}
+.btn.on {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius);
+  color: var(--ink-2);
+  flex: none;
+}
+.icon-btn:hover {
+  background: var(--sunken);
+  color: var(--ink);
+}
+.icon-btn.on {
+  color: var(--accent);
+}
+.icon-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+/* On touch screens every tappable control is at least 44px. */
+@media (pointer: coarse) {
+  .icon-btn {
+    width: 44px;
+    height: 44px;
+  }
+  .btn {
+    min-height: 44px;
+  }
+}
+
+.field {
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 9px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.field::placeholder {
+  color: var(--ink-3);
+}
+textarea.field {
+  display: block;
+  resize: vertical;
+  min-height: 62px;
+  line-height: 1.4;
+}
+
+.label {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* Segmented control: joined hairline boxes, not pills. */
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.seg button {
+  min-height: 34px;
+  padding: 0 12px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink-2);
+  border-left: 1px solid var(--rule-strong);
+}
+.seg button:first-child {
+  border-left: 0;
+}
+.seg button[aria-pressed='true'],
+.seg button[aria-checked='true'] {
+  background: var(--ink);
+  color: var(--paper);
+}
+.seg button:focus-visible {
+  outline-offset: -3px;
+}
+@media (pointer: coarse) {
+  .seg button {
+    min-height: 44px;
+  }
+}
+
+/* Small bordered label, used for tags. */
+.tag {
+  display: inline-block;
+  padding: 1px 6px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 2px;
+  font-size: 12px;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.tag.flag {
+  border-style: dashed;
+  color: var(--shaky);
+  border-color: currentColor;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(18px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 60;
+  max-width: min(520px, calc(100vw - 32px));
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 14px;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.18);
+}
+.toast.error {
+  background: var(--accent-strong);
+  color: var(--on-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

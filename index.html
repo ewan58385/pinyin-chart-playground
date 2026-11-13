@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Pinyin Chart</title>
+    <meta name="description" content="An interactive Mandarin pinyin chart with native audio, your own recordings and notes." />
+    <meta name="theme-color" content="#f7f4ee" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#171614" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Pinyin" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="icon" href="favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <script>
+      // Appearance before the first paint. This reads a cache of the appearance
+      // settings only; the settings themselves live in IndexedDB and rewrite
+      // this cache on every load (src/lib/theme.ts).
+      (function () {
+        try {
+          var raw = localStorage.getItem('pinyin-chart-appearance');
+          if (!raw) return;
+          var c = JSON.parse(raw);
+          var pick = c;
+          if (c.system) pick = matchMedia('(prefers-color-scheme: dark)').matches ? c.dark : c.light;
+          var h = document.documentElement;
+          for (var k in pick.attrs) h.setAttribute(k, pick.attrs[k]);
+          for (var v in pick.vars) h.style.setProperty(v, pick.vars[v]);
+          h.style.colorScheme = pick.attrs['data-theme'];
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <noscript>This chart needs JavaScript to run.</noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

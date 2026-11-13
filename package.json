@@ -1,0 +1,42 @@
+{
+  "name": "pinyin-chart",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "data:sources": "tsx scripts/fetch-sources.ts",
+    "data:build": "tsx scripts/build-data.ts",
+    "data:audio": "tsx scripts/fetch-audio.ts",
+    "data:fonts": "python3 scripts/build-fonts.py",
+    "data:icons": "python3 scripts/build-icons.py",
+    "data:all": "npm run data:sources && npm run data:build && npm run data:audio && npm run data:fonts"
+  },
+  "dependencies": {
+    "@preact/signals": "^2.11.4",
+    "fflate": "^0.8.3",
+    "idb": "^8.0.4",
+    "lucide-preact": "^1.72.0",
+    "preact": "^11.2.0"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.6",
+    "@types/node": "^26.6.6",
+    "fake-indexeddb": "^6.2.8",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^4.1.12",
+    "workbox-build": "^7.4.1",
+    "workbox-window": "^7.4.1"
+  },
+  "description": "An interactive Mandarin pinyin chart: native audio, example characters, your own notes and recordings. Offline-first PWA.",
+  "engines": {
+    "node": ">=20.19"
+  }
+}

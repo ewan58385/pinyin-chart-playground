@@ -1,0 +1,206 @@
+/* Settings page */
+
+.settings section + section {
+  margin-top: 26px;
+}
+.set-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 200px) 1fr;
+  gap: 8px 18px;
+  align-items: start;
+  padding: 10px 0;
+  border-top: 1px solid var(--rule);
+}
+.set-row:first-of-type {
+  border-top: 0;
+}
+.set-label {
+  display: block;
+  padding-top: 5px;
+  font-weight: 500;
+}
+.set-label small {
+  display: block;
+  margin-top: 2px;
+  font-weight: 400;
+  font-size: 12.5px;
+  color: var(--ink-3);
+  max-width: 34ch;
+}
+.set-row .seg {
+  flex-wrap: wrap;
+}
+
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0 4px;
+  color: var(--ink-2);
+  font-size: 13.5px;
+}
+.switch i {
+  position: relative;
+  display: inline-block;
+  width: 34px;
+  height: 20px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 10px;
+  background: var(--sunken);
+  transition: background 0.15s;
+}
+.switch i::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--ink-3);
+  transition: transform 0.15s, background 0.15s;
+}
+.switch.on i {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.switch.on i::after {
+  background: var(--on-accent);
+  transform: translateX(14px);
+}
+.switch.on {
+  color: var(--ink);
+}
+
+.presets,
+.faces {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+}
+.preset,
+.face {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px 10px 9px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-align: left;
+  font-size: 13.5px;
+  color: var(--ink);
+}
+.preset[aria-checked='true'],
+.face[aria-checked='true'] {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.preset-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid;
+  border-radius: 2px;
+  font-family: var(--font-serif);
+  font-size: 16px;
+}
+.preset-chip i {
+  flex: 1;
+  height: 10px;
+  border-radius: 1px;
+}
+.preset svg,
+.face svg {
+  color: var(--accent);
+}
+.face-sample {
+  font-size: 19px;
+  line-height: 1.2;
+}
+.face-sample.sans {
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+.face-sample.han {
+  font-size: 22px;
+}
+.face small {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.accents {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.accent-swatch {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  display: grid;
+  place-items: center;
+  color: #fff;
+}
+.accent-swatch i {
+  display: block;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+}
+.accent-swatch svg {
+  position: absolute;
+}
+.accent-swatch[aria-checked='true'] {
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+.custom-accent-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.custom-accent-fields .field {
+  width: 110px;
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+}
+.swatch-big {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+}
+.tone-sample {
+  margin-top: 6px;
+  font-family: var(--font-serif);
+  font-size: 18px;
+  display: flex;
+  gap: 14px;
+}
+
+@media (max-width: 600px) {
+  .set-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
+@media (pointer: coarse) {
+  .switch {
+    min-height: 44px;
+  }
+  .accent-swatch {
+    width: 44px;
+    height: 44px;
+  }
+}
