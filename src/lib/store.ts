@@ -16,7 +16,7 @@ import {
 import type { FinalGroup, FinalType } from '../data/finals';
 import type { Difficulty } from '../data/initials';
 import * as db from './db';
-import type { LearnStatus, Override, PracticeRecord, RecordingMeta, ToneNote } from './db';
+import type { LearnStatus, Override, RecordingMeta, ToneNote } from './db';
 
 // ───────────────────────── settings ─────────────────────────
 
@@ -52,10 +52,8 @@ export interface Settings {
   showCharacters: boolean;
   /** Write tones as numbers (ma1) instead of marks (mā). */
   toneNumbers: boolean;
-  /** The Practice area is reachable at all. */
-  showPractice: boolean;
-  /** A "practise this sound" link in the tone panel. */
-  practiceLink: boolean;
+  /** The Finals / Initials side panel is folded to a slim rail (wide screens only). */
+  blockNavCollapsed: boolean;
 }
 export const DEFAULT_SETTINGS: Settings = {
   flipAxes: false,
@@ -80,8 +78,7 @@ export const DEFAULT_SETTINGS: Settings = {
   reduceMotion: false,
   showCharacters: true,
   toneNumbers: false,
-  showPractice: true,
-  practiceLink: false,
+  blockNavCollapsed: false,
 };
 
 /** How a tone cell's pinyin is written under the current setting: mā or ma1. */
@@ -105,8 +102,6 @@ export const statuses = signal<Record<string, LearnStatus>>({});
 export const toneNotes = signal<Record<string, ToneNote>>({});
 export const overrides = signal<Record<string, Override>>({});
 export const recordings = signal<RecordingMeta[]>([]);
-/** Practice results per cell (listening quiz, minimal pairs). */
-export const practiceHistory = signal<Record<string, PracticeRecord>>({});
 export const settings = signal<Settings>({ ...DEFAULT_SETTINGS });
 
 /** null = not asked yet or unsupported; true/false = the browser's answer. */
@@ -127,19 +122,17 @@ export function notify(text: string, kind: 'info' | 'error' = 'info') {
 const byKey = <T,>(rows: T[], key: keyof T): Record<string, T> => Object.fromEntries(rows.map((r) => [r[key] as string, r]));
 
 export async function loadUserData(): Promise<void> {
-  const [st, tn, ov, rec, se, ph] = await Promise.all([
+  const [st, tn, ov, rec, se] = await Promise.all([
     db.getAll<db.StatusRecord>('status'),
     db.getAll<ToneNote>('toneNotes'),
     db.getAll<Override>('overrides'),
     db.getAll<RecordingMeta>('recordings'),
     db.getAll<db.SettingRecord>('settings'),
-    db.getAll<PracticeRecord>('practiceHistory'),
   ]);
   statuses.value = Object.fromEntries(st.map((r) => [r.cell, r.status]));
   toneNotes.value = byKey(tn, 'cell');
   overrides.value = byKey(ov, 'cell');
   recordings.value = rec.sort((a, b) => a.createdAt - b.createdAt);
-  practiceHistory.value = byKey(ph, 'cell');
   settings.value = settingsFrom(se);
   memoryOnly.value = db.usingMemoryFallback;
   ready.value = true;
@@ -231,21 +224,6 @@ export function clearOverride(cell: string) {
   delete next[cell];
   overrides.value = next;
   void guarded(() => db.remove('overrides', cell));
-}
-
-/** Record one practice answer for a cell. The chart status is never touched here. */
-export function recordPractice(cell: string, correct: boolean) {
-  const prev = practiceHistory.value[cell];
-  const now = Date.now();
-  const next: PracticeRecord = {
-    cell,
-    right: (prev?.right ?? 0) + (correct ? 1 : 0),
-    wrong: (prev?.wrong ?? 0) + (correct ? 0 : 1),
-    lastWrongAt: correct ? (prev?.lastWrongAt ?? 0) : now,
-    updatedAt: now,
-  };
-  practiceHistory.value = { ...practiceHistory.value, [cell]: next };
-  void guarded(() => db.put('practiceHistory', next));
 }
 
 export async function addRecording(meta: RecordingMeta, data: ArrayBuffer): Promise<boolean> {

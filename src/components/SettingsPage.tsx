@@ -248,12 +248,6 @@ export function SettingsPage() {
         <h2>Motion</h2>
         <Toggle name="reduceMotion" label="Reduce motion" hint="No transitions or animated scrolling" />
       </section>
-
-      <section>
-        <h2>Practice</h2>
-        <Toggle name="showPractice" label="Show the Practice area" hint="Off removes it from the navigation and hides the Practice buttons" />
-        <Toggle name="practiceLink" label="“Practise this sound” link in the tone panel" />
-      </section>
     </article>
   );
 }

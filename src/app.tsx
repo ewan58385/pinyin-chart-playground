@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'preact/hooks';
-import type { ComponentType } from 'preact';
+import { useEffect } from 'preact/hooks';
 import { applyAppearance } from './lib/theme';
 import { TabBar, TopBar } from './components/TopBar';
 import { FilterBar } from './components/FilterBar';
@@ -13,23 +12,6 @@ import { BrowsePage } from './components/BrowsePage';
 import { LearnPage } from './components/LearnPage';
 import { hasPanel } from './lib/routes';
 
-/** The practice area is its own chunk, fetched the first time it is opened. */
-function PracticeLazy() {
-  const [Page, setPage] = useState<ComponentType | null>(null);
-  const [failed, setFailed] = useState(false);
-  useEffect(() => {
-    let live = true;
-    import('./practice/PracticePage').then(
-      (m) => live && setPage(() => m.default),
-      () => live && setFailed(true),
-    );
-    return () => {
-      live = false;
-    };
-  }, []);
-  if (failed) return <p class="page">The practice area could not be loaded. If you are offline, open it once while online.</p>;
-  return Page ? <Page /> : <p class="page hint">Loading…</p>;
-}
 import { AboutPage } from './components/AboutPage';
 import { route } from './lib/router';
 import { filtersOpen, memoryOnly, ready, settings, toast } from './lib/store';
@@ -75,7 +57,6 @@ export function App() {
         <main class="page-wrap">
           {page === 'data' && <DataPage />}
           {page === 'settings' && <SettingsPage />}
-          {page === 'practice' && (s.showPractice ? <PracticeLazy /> : <p class="page hint">The practice area is turned off in Settings.</p>)}
           {page === 'about' && <AboutPage />}
         </main>
       )}

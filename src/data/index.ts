@@ -87,25 +87,27 @@ export const syllableInfo = (s: Syllable): SyllableInfo => ({
 
 export interface AudioSource {
   name: string;
+  /** Where the set can be found; "UNKNOWN" when the source folder does not say. */
   url: string;
   licence: string;
   licenceUrl: string;
   author: string;
+  speaker: string;
+  copyright: string;
   note?: string;
 }
 const audio = audioJson as unknown as {
   generatedAt: string;
   sources: Record<string, AudioSource>;
   totalBytes: number;
-  notes: string[];
-  unverified: Record<string, string>;
   clips: Record<string, [number, number, string]>;
 };
 export const AUDIO_SOURCES = audio.sources;
 export const AUDIO_TOTAL_BYTES = audio.totalBytes;
-export const AUDIO_NOTES = audio.notes;
-export const AUDIO_UNVERIFIED = audio.unverified;
 export const AUDIO_CLIPS = audio.clips;
 export const hasNativeAudio = (cellId: string): boolean => cellId in AUDIO_CLIPS;
+/** How many clips there are of each tone, 1–5. Copy about missing audio is worded from this, not assumed. */
+export const AUDIO_CLIPS_BY_TONE: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+for (const id of Object.keys(AUDIO_CLIPS)) AUDIO_CLIPS_BY_TONE[Number(id.slice(-1))]++;
 
 export { FINALS, INITIALS };

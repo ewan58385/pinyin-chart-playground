@@ -6,7 +6,7 @@
  * there. Progress comes from the user's own new / shaky / solid statuses, so
  * the path stores nothing of its own.
  */
-import { SYLLABLES, type Syllable, type ToneCell } from './index';
+import { AUDIO_CLIPS_BY_TONE, SYLLABLES, type Syllable, type ToneCell } from './index';
 import { INITIAL_BY_ID } from './initials';
 
 export interface Stage {
@@ -28,20 +28,23 @@ const has = (s: Syllable, tag: string) => s.tags.includes(tag);
 /** No initial, or one the data labels easy or tougher. */
 const plainInitial = (s: Syllable) => difficulty(s) !== 'problem' && !has(s, 'fake-i');
 
+/** How many native clips there are for the neutral tone; the last stage's wording depends on it. */
+const neutralClips = AUDIO_CLIPS_BY_TONE[5];
+
 export const STAGES: Stage[] = [
   {
     id: 'simple-easy',
     title: 'Simple finals, easy initials',
-    covers: 'The single-vowel finals on their own and after the initials in the “easy” group.',
-    why: 'Both halves carry the lightest labels in the data: finals typed “simple”, and initials labelled “easy: close to English” or no initial at all. The syllables where the letter i is not the i of yi (the “fake i” tag) are held back for the stage on z, c and s.',
+    covers: 'Single-vowel finals, on their own and after the initials in the “easy” group.',
+    why: 'Both halves carry the lightest labels in the data: finals typed “simple”, and initials labelled “easy: close to English” (or no initial at all). Syllables tagged “fake i”, where the letter i is not the i of yi, wait for the stage on z, c and s.',
     tones: 'full',
     match: (s) => has(s, 'simple') && !has(s, 'fake-i') && (difficulty(s) === null || difficulty(s) === 'easy'),
   },
   {
     id: 'simple-tougher',
     title: 'Simple finals, tougher initials',
-    covers: 'The same single-vowel finals after the initials in the “tougher” group.',
-    why: 'Only the initial is new. The data labels these initials “tougher: aspiration, voicing, h”; most come in unaspirated and aspirated pairs, which the minimal-pair trainer drills.',
+    covers: 'The same single-vowel finals, after the initials in the “tougher” group.',
+    why: 'Only the initial is new. The data labels these initials “tougher: aspiration, voicing, h”, and most of them come in unaspirated and aspirated pairs.',
     tones: 'full',
     match: (s) => has(s, 'simple') && difficulty(s) === 'tougher',
   },
@@ -49,7 +52,7 @@ export const STAGES: Stage[] = [
     id: 'compound',
     title: 'Compound finals',
     covers: 'Finals typed “compound”, with no initial or an easy or tougher one.',
-    why: 'The finals table types these “compound”: more than one vowel sound. They follow the single vowels and keep to initials already met. Some hide a vowel in their spelling (the “hidden vowel” tag).',
+    why: 'The finals table types these “compound”: more than one vowel sound. They follow the single vowels and use only initials already met. Some hide a vowel in their spelling (the “hidden vowel” tag).',
     tones: 'full',
     match: (s) => has(s, 'compound') && plainInitial(s),
   },
@@ -57,23 +60,23 @@ export const STAGES: Stage[] = [
     id: 'nasal',
     title: 'Nasal finals',
     covers: 'Finals ending in -n or -ng, with no initial or an easy or tougher one.',
-    why: 'The finals table types these “nasal”, tagged front (-n) or back (-ng). They come after the vowel finals so that only the ending is new; in / ing and en / eng are among the confusable pairs the data lists.',
+    why: 'The finals table types these “nasal”, tagged front (-n) or back (-ng). They come after the vowel finals, so only the ending is new. The data lists in / ing and en / eng among its confusable pairs.',
     tones: 'full',
     match: (s) => has(s, 'nasal') && plainInitial(s),
   },
   {
     id: 'palatal',
     title: 'j, q, x',
-    covers: 'Every syllable with a palatal initial.',
-    why: 'The first of the three initial groups the data labels “problem: tongue position”. These initials only take i- and ü- finals, and ü is written u after them (the “ü written u” tag).',
+    covers: 'Every syllable with a palatal initial: j, q or x.',
+    why: 'The first of the three initial groups the data labels “problem: tongue position”. These initials take only i- and ü- finals, and after them ü is written u (the “ü written u” tag).',
     tones: 'full',
     match: (s) => has(s, 'palatal'),
   },
   {
     id: 'retroflex',
     title: 'zh, ch, sh, r',
-    covers: 'Every syllable with a retroflex initial.',
-    why: 'The second “problem” group. The data links each of zh, ch, sh to a palatal and a dental partner as confusable, so it helps to have j, q, x in place first. zhi, chi, shi and ri carry the “fake i” tag.',
+    covers: 'Every syllable with a retroflex initial: zh, ch, sh or r.',
+    why: 'The second “problem” group. The data marks each of zh, ch and sh as confusable with a palatal and a dental partner, so it helps to know j, q and x first. zhi, chi, shi and ri carry the “fake i” tag.',
     tones: 'full',
     match: (s) => has(s, 'retroflex'),
   },
@@ -81,7 +84,7 @@ export const STAGES: Stage[] = [
     id: 'dental',
     title: 'z, c, and the fake i of s',
     covers: 'Every syllable with z or c, and si.',
-    why: 'The third “problem” group, the dental partners of zh, ch, sh. The data labels s “easy” (flagged as a judgement call), so its other syllables appeared in earlier stages; only si, which carries the “fake i” tag, waits until here.',
+    why: 'The third “problem” group: the dental partners of zh, ch and sh. The data labels s “easy” (flagged as a judgement call), so its other syllables come in earlier stages; only si, tagged “fake i”, waits until here.',
     tones: 'full',
     match: (s) => (has(s, 'dental-sibilant') && difficulty(s) === 'problem') || (has(s, 'fake-i') && has(s, 'dental-sibilant')),
   },
@@ -89,7 +92,7 @@ export const STAGES: Stage[] = [
     id: 'spelling',
     title: 'Review: spelling that hides the sound',
     covers: 'Syllables tagged hidden vowel, ü written u, o said as uo, y / w spelling or fake i.',
-    why: 'A review stage: every syllable here already belongs to a stage above. They are gathered because the data tags their spelling as differing from what is said.',
+    why: 'A review: every syllable here already belongs to an earlier stage. They are gathered because the data tags their spelling as different from how they are said.',
     review: true,
     tones: 'full',
     match: (s) => ['hidden-vowel', 'ü-as-u', 'o-as-uo', 'spelling-variant', 'fake-i'].some((t) => has(s, t)),
@@ -98,7 +101,10 @@ export const STAGES: Stage[] = [
     id: 'neutral',
     title: 'Neutral tones',
     covers: 'The neutral-tone cell of every syllable that has one.',
-    why: 'Last because the sound pack has no neutral-tone recordings: these cells can only be studied through their example words and your own recordings.',
+    why:
+      neutralClips === 0
+        ? 'Last, because the audio set has no usable neutral-tone recordings: these cells are studied through their example words and your own recordings.'
+        : 'Last, because it takes one cell from syllables met in every earlier stage.',
     tones: 'neutral',
     match: () => true,
   },
@@ -168,14 +174,9 @@ export function nextStage(statuses: Record<string, Status | undefined>, showUnve
   return STAGES.find((st) => !st.review && !progressOf(stageCells(st, showUnverified), statuses).mostlySolid) ?? null;
 }
 
-/**
- * The shaky cells most worth revisiting: every cell marked shaky, the ones
- * with the most recent practice errors first (errors fade with the weight
- * function passed in), then in chart order.
- */
-export function shakiest(statuses: Record<string, Status | undefined>, errorWeight: (cell: string) => number, limit = 8): StageCell[] {
-  const out: (StageCell & { w: number; i: number })[] = [];
-  let i = 0;
-  for (const s of SYLLABLES) for (const cell of s.tones) if (statuses[cell.numeric] === 'shaky') out.push({ syllable: s, cell, w: errorWeight(cell.numeric), i: i++ });
-  return out.sort((a, b) => b.w - a.w || a.i - b.i).slice(0, limit).map(({ syllable, cell }) => ({ syllable, cell }));
+/** Cells marked shaky, in chart order, up to a limit: the ones worth revisiting. */
+export function shakiest(statuses: Record<string, Status | undefined>, limit = 8): StageCell[] {
+  const out: StageCell[] = [];
+  for (const s of SYLLABLES) for (const cell of s.tones) if (statuses[cell.numeric] === 'shaky' && out.length < limit) out.push({ syllable: s, cell });
+  return out;
 }

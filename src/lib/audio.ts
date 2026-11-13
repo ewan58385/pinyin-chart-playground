@@ -16,7 +16,13 @@ import { signal } from '@preact/signals';
 import { AUDIO_CLIPS, SYLLABLES, TONE_CELL, hasNativeAudio, type Syllable } from '../data';
 import { toAscii } from './pinyin';
 
-const CACHE_NAME = 'native-audio-v1';
+/**
+ * The bucket name changes whenever the clips are replaced by a different
+ * recording set: v1 held the previous set, v2 holds the current one. The old
+ * bucket is deleted at startup (purgeStaleAudioCaches), so nobody keeps
+ * hearing the previous recordings.
+ */
+const CACHE_NAME = 'native-audio-v2';
 
 export const nativeUrl = (cellId: string) => `${import.meta.env.BASE_URL}audio/${toAscii(cellId)}.mp3`;
 
@@ -47,7 +53,8 @@ async function openCache(): Promise<Cache | null> {
 async function cacheClip(cache: Cache | null, cellId: string): Promise<Blob | null> {
   const url = nativeUrl(cellId);
   try {
-    const res = await fetch(url);
+    // Revalidate with the server so the browser's HTTP cache cannot hand back a clip from an earlier set.
+    const res = await fetch(url, { cache: 'no-cache' });
     if (!res.ok) return null;
     if (cache) await cache.put(url, res.clone());
     return await res.blob();

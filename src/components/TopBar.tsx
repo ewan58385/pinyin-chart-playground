@@ -4,7 +4,7 @@ import { filtersActive, filtersOpen, resolveExample, setSetting, settings, type 
 import { search, loadCharIndex, type SearchHit } from '../lib/search';
 import { toneMark } from '../lib/pinyin';
 import { SYLLABLES } from '../data';
-import { Search as SearchIcon, FiltersIcon, Flip, More, Density, Sun, Moon, Monitor, Eye, EyeOff, Check, ChartIcon, FinalsIcon, InitialsIcon, LearnIcon, Target } from './icons';
+import { Search as SearchIcon, FiltersIcon, Flip, More, Density, Sun, Moon, Monitor, Eye, EyeOff, Check, ChartIcon, FinalsIcon, InitialsIcon, LearnIcon, Database } from './icons';
 
 interface NavItem {
   page: Page;
@@ -19,9 +19,8 @@ const PAGES: NavItem[] = [
   { page: 'finals', label: 'Finals', href: '#/finals' },
   { page: 'initials', label: 'Initials', href: '#/initials' },
   { page: 'browse', label: 'Browse', href: '#/browse' },
-  { page: 'learn', label: 'Learn', href: '#/learn', sub: 'the path' },
-  { page: 'practice', label: 'Practice', href: '#/practice', sub: 'drills' },
-  { page: 'data', label: 'My data', href: '#/data' },
+  { page: 'learn', label: 'Learn', href: '#/learn' },
+  { page: 'data', label: 'My data', href: '#/data', sub: 'backup' },
 ];
 /** In the More menu on every screen. */
 const MORE: NavItem[] = [
@@ -33,15 +32,14 @@ const TABS: (NavItem & { icon: typeof ChartIcon })[] = [
   { page: 'chart', label: 'Chart', href: '#/', icon: ChartIcon },
   { page: 'finals', label: 'Finals', href: '#/finals', icon: FinalsIcon },
   { page: 'initials', label: 'Initials', href: '#/initials', icon: InitialsIcon },
-  { page: 'learn', label: 'Learn', href: '#/learn', icon: LearnIcon, sub: 'the path' },
-  { page: 'practice', label: 'Practice', href: '#/practice', icon: Target, sub: 'drills' },
+  { page: 'learn', label: 'Learn', href: '#/learn', icon: LearnIcon },
+  { page: 'data', label: 'My data', href: '#/data', icon: Database, sub: 'backup and restore' },
 ];
-const shown = <T extends NavItem>(items: T[], showPractice: boolean): T[] => items.filter((p) => p.page !== 'practice' || showPractice);
 
 /** Bottom tab bar, phones only (hidden by CSS on wide screens). */
 export function TabBar() {
   const page = route.value.page;
-  const tabs = shown(TABS, settings.value.showPractice);
+  const tabs = TABS;
   return (
     <nav class="tabbar" aria-label="Sections" style={{ '--tabs': tabs.length }}>
       {tabs.map((t) => (
@@ -183,8 +181,8 @@ function Menu({ onClose }: { onClose: () => void }) {
   const hidden = SYLLABLES.reduce((n, syl) => n + syl.tones.filter((t) => t.status === 'single-source').length, 0);
   const ThemeIcon = s.theme === 'dark' ? Moon : s.theme === 'light' ? Sun : Monitor;
   // On phones: whatever of the main navigation is not in the tab bar.
-  const inTabs = new Set(shown(TABS, s.showPractice).map((t) => t.page));
-  const overflow = shown(PAGES, s.showPractice).filter((p) => !inTabs.has(p.page));
+  const inTabs = new Set(TABS.map((t) => t.page));
+  const overflow = PAGES.filter((p) => !inTabs.has(p.page));
   return (
     <div class="menu" ref={ref} role="menu" aria-label="More">
       <div class="pages">
@@ -245,7 +243,7 @@ export function TopBar() {
         <span class="name">Pinyin Chart</span>
       </a>
       <nav class="nav" aria-label="Pages">
-        {shown(PAGES, settings.value.showPractice).map((p) => (
+        {PAGES.map((p) => (
           <a href={p.href} aria-current={page === p.page ? 'page' : undefined} aria-label={p.sub ? `${p.label}: ${p.sub}` : undefined} class={p.sub ? 'has-sub' : undefined}>
             <span>{p.label}</span>
             {p.sub && <small aria-hidden="true">{p.sub}</small>}

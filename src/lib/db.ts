@@ -71,7 +71,11 @@ export interface SettingRecord {
   value: unknown;
   updatedAt: number;
 }
-/** What the practice tools have seen of one tone cell. Never changes the cell's status. */
+/**
+ * Quiz results per tone cell, from a section of the app that has since been
+ * removed. The store stays declared so an upgrade does not delete rows people
+ * already have; nothing reads or writes it any more, and exports leave it out.
+ */
 export interface PracticeRecord {
   cell: string;
   right: number;
@@ -94,6 +98,8 @@ interface Schema extends DBSchema {
 
 export type StoreName = 'status' | 'legacyNotes' | 'toneNotes' | 'overrides' | 'recordings' | 'recordingData' | 'settings' | 'practiceHistory';
 export const STORES: StoreName[] = ['status', 'legacyNotes', 'toneNotes', 'overrides', 'recordings', 'recordingData', 'settings', 'practiceHistory'];
+/** Stores kept only so their rows survive: nothing writes, clears or exports them. */
+export const RETIRED_STORES: StoreName[] = ['practiceHistory'];
 const KEY_PATH: Record<StoreName, string> = {
   status: 'cell',
   legacyNotes: 'syllable',
@@ -114,7 +120,8 @@ const KEY_PATH: Record<StoreName, string> = {
  *   4  the store that held edited lesson times is removed; from here on any
  *      store this version does not declare is dropped on upgrade (Round 2, step 7)
  *   5  + practiceHistory (Round 2, step 10)
- *   6  the per-cell audio preference store is dropped with the feature it served
+ *   6  the per-cell audio preference store is dropped with the feature it served.
+ *      (practiceHistory is still declared, unused, so the rows in it are kept.)
  */
 export const DB_VERSION = 6;
 

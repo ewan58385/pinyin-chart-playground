@@ -7,7 +7,6 @@ import './styles/detail.css';
 import './styles/pages.css';
 import './styles/blocks.css';
 import './styles/settings.css';
-import './styles/practice.css';
 import './styles/nav.css';
 import './styles/learn.css';
 import { App } from './app';

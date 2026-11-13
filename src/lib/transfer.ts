@@ -1,7 +1,7 @@
 /**
  * Export and import of everything the user has created, as one zip:
  *
- *   data.json                 notes, status, overrides, settings, practice results, recording metadata
+ *   data.json                 notes, status, overrides, settings, recording metadata
  *   recordings/<id>.<ext>     one audio file per take, in the format the browser recorded
  *
  * Import merges by default: for each record the newer `updatedAt` wins, and
@@ -12,7 +12,7 @@
  */
 import { zipSync, unzipSync, strToU8, strFromU8 } from 'fflate';
 import * as db from './db';
-import type { LegacyNote, Override, PracticeRecord, RecordingMeta, SettingRecord, StatusRecord, ToneNote } from './db';
+import type { LegacyNote, Override, RecordingMeta, SettingRecord, StatusRecord, ToneNote } from './db';
 import { hasLegacyText, mergeNotes } from './notes';
 import { extensionFor } from './recorder';
 import { CELLS, TONE_CELL, hasNativeAudio } from '../data';
@@ -26,7 +26,9 @@ export const EXPORT_FORMAT = 'pinyin-chart-export';
  * syllable notes are merged into the first tone cell's note). 4: the edited lesson
  * times are gone (older files import; fields this version does not know are dropped).
  * 5: + practiceHistory. 6: the per-cell audio preference list of versions 2–5 is gone
- * (older files import; that field is dropped).
+ * (older files import; that field is dropped). Files of version 6 made before the
+ * quiz section was removed also carry practiceHistory; it is dropped on import,
+ * and new files leave it out (a field removed, none added, so the version stays 6).
  */
 export const EXPORT_VERSION = 6;
 
@@ -40,8 +42,6 @@ export interface ExportData {
   toneNotes: ToneNote[];
   overrides: Override[];
   settings: SettingRecord[];
-  /** Practice results (since version 5). */
-  practiceHistory: PracticeRecord[];
   /** `file` is the path of the audio inside the zip. */
   recordings: (RecordingMeta & { file: string })[];
 }
@@ -97,7 +97,6 @@ export function unpackExport(zip: Uint8Array): ExportBundle {
       toneNotes: data.toneNotes ?? [],
       overrides: data.overrides ?? [],
       settings: data.settings ?? [],
-      practiceHistory: data.practiceHistory ?? [],
       recordings: (data.recordings ?? []).filter((r) => audio[r.id]),
     },
     audio,
@@ -116,12 +115,11 @@ export function newerRows<T extends { updatedAt: number }>(existing: T[], incomi
 // ───────────────────────── browser side ─────────────────────────
 
 export async function buildExport(): Promise<{ bytes: Uint8Array; filename: string; counts: Record<string, number> }> {
-  const [status, tNotes, ov, se, ph, recs] = await Promise.all([
+  const [status, tNotes, ov, se, recs] = await Promise.all([
     db.getAll<StatusRecord>('status'),
     db.getAll<ToneNote>('toneNotes'),
     db.getAll<Override>('overrides'),
     db.getAll<SettingRecord>('settings'),
-    db.getAll<PracticeRecord>('practiceHistory'),
     db.getAll<RecordingMeta>('recordings'),
   ]);
   const audio: Record<string, Uint8Array> = {};
@@ -141,7 +139,6 @@ export async function buildExport(): Promise<{ bytes: Uint8Array; filename: stri
     toneNotes: tNotes.filter((n) => n.note),
     overrides: ov,
     settings: se,
-    practiceHistory: ph,
     recordings,
   };
   const stamp = now.toISOString().slice(0, 16).replace(/[-:]/g, '').replace('T', '-');
@@ -153,6 +150,7 @@ export async function buildExport(): Promise<{ bytes: Uint8Array; filename: stri
       notes: data.toneNotes.length,
       recordings: recordings.length,
       characters: ov.length,
+      settings: se.length,
     },
   };
 }
@@ -161,14 +159,14 @@ export interface ImportSummary {
   status: number;
   notes: number;
   overrides: number;
-  practice: number;
+  settings: number;
   recordings: number;
   skippedRecordings: number;
 }
 
 export async function applyImport(zip: Uint8Array, replace: boolean): Promise<ImportSummary> {
   const { data, audio } = unpackExport(zip);
-  if (replace) for (const store of db.STORES) await db.clearStore(store);
+  if (replace) for (const store of db.STORES) if (!db.RETIRED_STORES.includes(store)) await db.clearStore(store);
 
   const merge = async <T extends { updatedAt: number }>(store: db.StoreName, rows: T[], key: keyof T) => {
     const fresh = newerRows(await db.getAll<T>(store), rows, key);
@@ -180,11 +178,10 @@ export async function applyImport(zip: Uint8Array, replace: boolean): Promise<Im
     status: await merge('status', data.status, 'cell'),
     notes: (await merge('toneNotes', data.toneNotes, 'cell')) + (await mergeLegacyNotes(data.syllableNotes ?? [])),
     overrides: await merge('overrides', data.overrides, 'cell'),
-    practice: await merge('practiceHistory', data.practiceHistory, 'cell'),
+    settings: await merge('settings', data.settings, 'name'),
     recordings: 0,
     skippedRecordings: 0,
   };
-  await merge('settings', data.settings, 'name');
 
   const existing = new Map((await db.getAll<RecordingMeta>('recordings')).map((r) => [r.id, r]));
   for (const { file: _file, ...meta } of data.recordings) {

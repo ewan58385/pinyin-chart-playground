@@ -76,11 +76,10 @@ describe('progress', () => {
     expect(nextStage(done)).toBeNull();
   });
 
-  it('lists shaky cells with the most recent errors first', () => {
+  it('lists shaky cells in chart order, up to a limit', () => {
     const statuses: Record<string, Status> = { ma1: 'shaky', ba2: 'shaky', zhi1: 'shaky', de5: 'solid' };
-    const w: Record<string, number> = { zhi1: 2, ba2: 0.5 };
-    expect(shakiest(statuses, (c) => w[c] ?? 0).map((c) => c.cell.numeric)).toEqual(['zhi1', 'ba2', 'ma1']);
-    expect(shakiest(statuses, () => 0, 2)).toHaveLength(2);
+    expect(shakiest(statuses).map((c) => c.cell.numeric)).toEqual(['ba2', 'ma1', 'zhi1']);
+    expect(shakiest(statuses, 2)).toHaveLength(2);
   });
 });
 

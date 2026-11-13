@@ -65,7 +65,7 @@ describe('numericToDisplay', () => {
 });
 
 describe('toneLetter', () => {
-  it('gives the marked letter for tones 1-4 and the plain one for the neutral tone', () => {
+  it('gives the marked letter for the four full tones and the plain one for the neutral tone', () => {
     expect(([1, 2, 3, 4, 5] as const).map((t) => toneLetter('zhuang', t)).join(' ')).toBe('ā á ǎ à a');
     expect(toneLetter('lü', 4)).toBe('ǜ');
     expect(toneLetter('liu', 2)).toBe('ú');

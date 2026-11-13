@@ -195,7 +195,7 @@
     padding-bottom: 0;
   }
 }
-/* The main navigation has seven entries: drop the wordmark's name before it gets tight. */
+/* The main navigation has six entries: drop the wordmark's name before it gets tight. */
 @media (min-width: 860px) and (max-width: 1120px) {
   .wordmark .name {
     display: none;

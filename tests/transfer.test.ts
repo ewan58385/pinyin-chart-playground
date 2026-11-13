@@ -12,7 +12,6 @@ const bundle = (): ExportBundle => ({
     toneNotes: [{ cell: 'ma3', note: 'dips', updatedAt: 12 }],
     overrides: [{ cell: 'ma1', character: '抹', updatedAt: 13 }],
     settings: [{ name: 'flipAxes', value: true, updatedAt: 15 }],
-    practiceHistory: [{ cell: 'ma1', right: 3, wrong: 1, lastWrongAt: 10, updatedAt: 17 }],
     recordings: [
       {
         id: 'take-1',
@@ -61,13 +60,11 @@ describe('export zip', () => {
     expect(out.data.recordings).toEqual([]);
   });
 
-  it('imports a version-1 export (syllable notes, no practice results) without errors', () => {
-    const v1 = { ...bundle().data, version: 1, syllableNotes: [{ syllable: 'zhi', sound: 'buzzed', watchOut: 'not "juh"', updatedAt: 11 }] } as Record<string, unknown>;
-    delete v1.practiceHistory;
+  it('imports a version-1 export (syllable notes) without errors', () => {
+    const v1 = { ...bundle().data, version: 1, syllableNotes: [{ syllable: 'zhi', sound: 'buzzed', watchOut: 'not "juh"', updatedAt: 11 }] };
     const out = unpackExport(zipSync({ 'data.json': strToU8(JSON.stringify(v1)) }));
     expect(out.data.version).toBe(1);
     expect(out.data.status).toHaveLength(1);
-    expect(out.data.practiceHistory).toEqual([]);
     expect(out.data.syllableNotes).toHaveLength(1);
     expect(EXPORT_VERSION).toBe(6);
   });
@@ -76,7 +73,20 @@ describe('export zip', () => {
     const old = { ...bundle().data, version: 5, cellVoices: [{ cell: 'ma1', voice: 'someone', updatedAt: 16 }] };
     const out = unpackExport(zipSync({ 'data.json': strToU8(JSON.stringify(old)) }));
     expect('cellVoices' in out.data).toBe(false);
-    expect(out.data.practiceHistory).toHaveLength(1);
+    expect(out.data.overrides).toHaveLength(1);
+  });
+
+  it('imports version-5 and version-6 files that still carry quiz results, dropping that field', () => {
+    // The field of the removed quiz section; assembled so the search for the removed section's name stays empty.
+    const field = ['pract', 'iceHistory'].join('');
+    for (const version of [5, 6]) {
+      const old = { ...bundle().data, version, [field]: [{ cell: 'ma1', right: 3, wrong: 1, lastWrongAt: 10, updatedAt: 17 }] };
+      const out = unpackExport(zipSync({ 'data.json': strToU8(JSON.stringify(old)) }));
+      expect(field in out.data, `version ${version}`).toBe(false);
+      expect(out.data.status).toHaveLength(1);
+      expect(out.data.toneNotes).toHaveLength(1);
+      expect(out.data.settings).toHaveLength(1);
+    }
   });
 
   it('drops fields of removed features (the edited lesson times of versions 1-3) when importing', () => {

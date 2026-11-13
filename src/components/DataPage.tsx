@@ -45,10 +45,10 @@ export function DataPage() {
       const { bytes, filename, counts } = await buildExport();
       const how = await deliverFile(bytes, filename, 'application/zip', share);
       setExported(
-        `${how === 'shared' ? 'Shared' : 'Saved'} ${filename} (${mb(bytes.length)}): ${counts.statuses} statuses, ${counts.notes} notes, ${counts.recordings} recordings, ${counts.characters} edited characters.`,
+        `${how === 'shared' ? 'Shared' : 'Saved'} ${filename} (${mb(bytes.length)}): ${counts.statuses} statuses, ${counts.notes} notes, ${counts.recordings} recordings, ${counts.characters} edited characters, ${counts.settings} settings.`,
       );
     } catch (err) {
-      notify(`Export failed: ${(err as Error).message}`, 'error');
+      notify(`Backup failed: ${(err as Error).message}`, 'error');
     }
     setBusy(null);
   };
@@ -86,42 +86,20 @@ export function DataPage() {
     <article class="page">
       <h1>My data</h1>
       <p class="lede">
-        Everything you add lives in this browser only: there is no account and no server. Export it to back it up or to move it between your phone and
-        laptop.
+        Everything you add lives in this browser only: there is no account and no server. Export a backup to keep it safe or to move it between your
+        phone and laptop.
       </p>
 
-      <section>
-        <h2>What is stored here</h2>
-        <div class="stat-grid">
-          <div class="stat">
-            <b>{statusCount}</b>
-            <span>tones marked shaky or solid</span>
-          </div>
-          <div class="stat">
-            <b>{noteCount}</b>
-            <span>notes</span>
-          </div>
-          <div class="stat">
-            <b>{recs.length}</b>
-            <span>recordings{recs.length ? `, ${mb(recBytes)}` : ''}</span>
-          </div>
-          <div class="stat">
-            <b>{Object.keys(overrides.value).length}</b>
-            <span>edited characters</span>
-          </div>
-        </div>
-      </section>
-
-      <section>
-        <h2>Move or back up</h2>
+      <section class="backup" aria-labelledby="backup-title">
+        <h2 id="backup-title">Backup and restore</h2>
         <p>
-          One zip holds your notes, statuses, recordings, edited characters, settings and practice results. Importing merges: for anything
-          changed in both places the newer version wins, and recordings are never duplicated.
+          A backup is one zip with your statuses (and so your Learn progress), notes, recordings, edited characters and settings. Restoring merges it with
+          what is here: the newer version of anything wins, and nothing is added twice.
         </p>
         <div class="actions">
           <button type="button" class="btn primary" disabled={!!busy} onClick={() => void doExport(false)}>
             <Download size={16} aria-hidden="true" />
-            {busy === 'export' ? 'Preparing…' : 'Export everything'}
+            {busy === 'export' ? 'Preparing…' : 'Export backup'}
           </button>
           {canShare && (
             <button type="button" class="btn" disabled={!!busy} onClick={() => void doExport(true)}>
@@ -131,7 +109,7 @@ export function DataPage() {
           )}
           <button type="button" class="btn" disabled={!!busy} onClick={() => fileRef.current?.click()}>
             <Upload size={16} aria-hidden="true" />
-            {busy === 'import' ? 'Importing…' : 'Import a zip'}
+            {busy === 'import' ? 'Restoring…' : 'Restore from backup'}
           </button>
           <input
             ref={fileRef}
@@ -139,7 +117,7 @@ export function DataPage() {
             accept=".zip,application/zip"
             class="sr-only"
             tabIndex={-1}
-            aria-label="Choose an export zip to import"
+            aria-label="Choose a backup zip to restore"
             onChange={(e) => {
               const file = (e.target as HTMLInputElement).files?.[0];
               if (!file) return;
@@ -150,11 +128,11 @@ export function DataPage() {
         </div>
         <label class="check">
           <input type="checkbox" checked={replace} onChange={(e) => setReplace((e.target as HTMLInputElement).checked)} />
-          Replace everything here with the import, instead of merging
+          Replace everything here with the backup, instead of merging
         </label>
         {confirmReplace && (
           <div class="result bad" role="alertdialog" aria-label="Confirm replace">
-            This deletes all notes, statuses and recordings in this browser, then loads {confirmReplace.name}.
+            This deletes all notes, statuses, recordings, edited characters and settings in this browser, then loads {confirmReplace.name}.
             <div class="actions" style="margin-top:8px">
               <button type="button" class="btn primary" onClick={() => void doImport(confirmReplace, true)}>
                 Delete and replace
@@ -179,16 +157,39 @@ export function DataPage() {
         )}
         {imported && (
           <p class="result" role="status">
-            Imported {imported.status} statuses, {imported.notes} notes, {imported.recordings} recordings, {imported.overrides} edited characters and{' '}
-            {imported.practice} practice results.
+            {imported.status + imported.notes + imported.recordings + imported.overrides + imported.settings === 0
+              ? 'Nothing new: everything in that backup is already here.'
+              : `Restored ${imported.status} statuses, ${imported.notes} notes, ${imported.recordings} recordings, ${imported.overrides} edited characters and ${imported.settings} settings.`}
             {imported.skippedRecordings > 0 && ` ${imported.skippedRecordings} recordings were already here.`}
           </p>
         )}
         {importError && (
           <p class="result bad" role="alert">
-            {importError}
+            Could not restore: {importError}
           </p>
         )}
+      </section>
+
+      <section>
+        <h2>What is stored here</h2>
+        <div class="stat-grid">
+          <div class="stat">
+            <b>{statusCount}</b>
+            <span>tones marked shaky or solid</span>
+          </div>
+          <div class="stat">
+            <b>{noteCount}</b>
+            <span>notes</span>
+          </div>
+          <div class="stat">
+            <b>{recs.length}</b>
+            <span>recordings{recs.length ? `, ${mb(recBytes)}` : ''}</span>
+          </div>
+          <div class="stat">
+            <b>{Object.keys(overrides.value).length}</b>
+            <span>edited characters</span>
+          </div>
+        </div>
       </section>
 
       <section>
@@ -211,7 +212,7 @@ export function DataPage() {
               .{' '}
               {p.supported && p.granted
                 ? 'The browser will not clear your data to free up space.'
-                : 'The browser may clear this site’s data if the device runs short of space or the site goes unused for a long time. Installing the app to your home screen makes that much less likely. Keep an export as a backup.'}
+                : 'The browser may clear this site’s data if the device runs short of space or the site goes unused for a long time. Installing the app to your home screen makes that much less likely. Keep a backup (see the top of this page).'}
             </p>
             {p.usage !== undefined && p.quota !== undefined && (
               <p class="hint">

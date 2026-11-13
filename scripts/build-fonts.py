@@ -184,10 +184,17 @@ def unicode_range(codepoints) -> str:
     return ", ".join(f"U+{a:X}" if a == b else f"U+{a:X}-{b:X}" for a, b in parts)
 
 
+def attribution_han() -> str:
+    """Han characters in the audio attribution shown on the About page (the speaker's name)."""
+    index = json.loads((ROOT / "src" / "data" / "generated" / "audio-index.json").read_text("utf8"))
+    text = json.dumps(index.get("sources", {}), ensure_ascii=False)
+    return "".join(sorted({c for c in text if "\u3400" <= c <= "\u9fff" or "\uf900" <= c <= "\ufaff"}))
+
+
 def main() -> None:
     chars = json.loads((ROOT / "src" / "data" / "generated" / "font-chars.json").read_text("utf8"))
     core = {ord(c) for c in chars["chart"] + HAN_EXTRA}
-    more = {ord(c) for c in chars["detail"]} - core
+    more = {ord(c) for c in chars["detail"] + attribution_han()} - core
 
     total = 0
     total += build("serif", "chart-serif.woff2", "Chart Serif", LATIN, {"wght": (400, 700)}, LATIN_FEATURES)

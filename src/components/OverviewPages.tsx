@@ -20,7 +20,7 @@ const TAG_CATEGORY: Record<string, string> = { 'hidden-vowel': 'hidden-vowel', '
 
 /** A readable progress bar for a group: solid and shaky shares of its tones, with the count in words. */
 function GroupProgress({ block }: { block: Block }) {
-  const p = progressOf(scopeCells({ kind: block.kind, id: block.id }, {}, settings.value.showUnverified), statuses.value);
+  const p = progressOf(scopeCells({ kind: block.kind, id: block.id }, settings.value.showUnverified), statuses.value);
   const total = Math.max(1, p.cells);
   return (
     <div class="group-progress">

@@ -2,7 +2,7 @@
  * Loaders for the raw source files under .cache/sources/.
  * Nothing here decides anything; it only turns each source into plain data.
  */
-import { readFileSync, existsSync, readdirSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { splitTone, normaliseUmlaut, type Tone } from '../../src/lib/pinyin';
@@ -213,12 +213,4 @@ export function loadHsk(): Map<string, HskWord> {
   if (!existsSync(path)) return map;
   for (const w of JSON.parse(readFileSync(path, 'utf8')) as HskWord[]) map.set(w.simplified, w);
   return map;
-}
-
-// ───────────────────────── audio pack file list ─────────────────────────
-
-/** Syllable+tone keys that the downloaded davinfifield pack contains, by its own naming. */
-export function listAudioPackFiles(): string[] {
-  const dir = join(CACHE, 'audio-davinfifield', 'mp3-chinese-pinyin-sound-master', 'mp3');
-  return existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith('.mp3')) : [];
 }

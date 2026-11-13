@@ -6,7 +6,7 @@ import type { Syllable } from '../data';
 import { route } from '../lib/router';
 import { settings, statuses, visibleTones } from '../lib/store';
 import { progressOf } from '../data/learn';
-import { Crumbs, MoreLink, PracticeButton, StatusSummary, count } from './common';
+import { Crumbs, MoreLink, StatusSummary, count } from './common';
 import { CardLegend, SyllableCard } from './SyllableCard';
 
 const cellsOf = (syls: Syllable[], show: boolean) => syls.flatMap((s) => visibleTones(s, show).map((cell) => ({ syllable: s, cell })));
@@ -76,9 +76,6 @@ function CategoryPage({ c }: { c: Category }) {
           </div>
         </header>
         <StatusSummary cells={cellsOf(syls, show)} syllables={syls.length} />
-        <p class="page-actions">
-          <PracticeButton scope={{ kind: 'category', id: c.id }}>Practise this category</PracticeButton>
-        </p>
         <CardLegend />
         {groups
           .filter((g) => g.syls.length)

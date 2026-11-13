@@ -3,7 +3,13 @@ import { FINALS, FINAL_GROUPS, FINAL_BY_ID } from '../src/data/finals';
 import { INITIALS, INITIAL_BY_ID } from '../src/data/initials';
 import { SYLLABLES, SYLLABLE_BY_ID, CELLS, GRID, AUDIO_CLIPS, TONE_CELL } from '../src/data';
 import { confusablesFor } from '../src/data/confusables';
-import { parseSyllable, YW_SPELLINGS } from '../src/lib/pinyin';
+import { parseSyllable, toAscii, YW_SPELLINGS } from '../src/lib/pinyin';
+import { createHash } from 'node:crypto';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 const standard = SYLLABLES.filter((s) => s.status === 'standard');
 const ids = (list: { id: string }[]) => list.map((x) => x.id);
@@ -157,10 +163,47 @@ describe('example characters', () => {
 });
 
 describe('audio', () => {
-  it('only lists clips for tone cells that exist, and none for the neutral tone', () => {
-    for (const id of Object.keys(AUDIO_CLIPS)) {
+  const index = JSON.parse(readFileSync(join(ROOT, 'src', 'data', 'generated', 'audio-index.json'), 'utf8'));
+  const manifest = JSON.parse(readFileSync(join(ROOT, 'audio-manifest.json'), 'utf8'));
+
+  it('lists clips only for real chart cells, each one on disk with the size the index gives', () => {
+    expect(Object.keys(AUDIO_CLIPS).length).toBeGreaterThan(0);
+    for (const [id, [bytes]] of Object.entries(AUDIO_CLIPS)) {
       expect(TONE_CELL[id], id).toBeDefined();
-      expect(id.endsWith('5'), id).toBe(false);
+      const file = join(ROOT, 'public', 'audio', `${toAscii(id)}.mp3`);
+      expect(existsSync(file), file).toBe(true);
+      expect(statSync(file).size, id).toBe(bytes);
+    }
+  });
+
+  it('has no stray files in public/audio', () => {
+    const named = new Set(Object.keys(AUDIO_CLIPS).map((id) => `${toAscii(id)}.mp3`));
+    for (const f of readdirSync(join(ROOT, 'public', 'audio'))) expect(named.has(f), f).toBe(true);
+  });
+
+  it('agrees with the manifest, which names a source, licence and original file for every clip', () => {
+    expect(Object.keys(manifest.clips).sort()).toEqual(Object.keys(AUDIO_CLIPS).sort());
+    for (const [id, c] of Object.entries(manifest.clips) as [string, Record<string, string>][]) {
+      expect(c.original, id).toMatch(/\.mp3$/);
+      expect(c.licence, id).toBeTruthy();
+      expect(c.author, id).toBeTruthy();
+      expect(c.speaker, id).toBeTruthy();
+    }
+    expect(index.totalBytes).toBe(Object.values(AUDIO_CLIPS).reduce((n, [b]) => n + b, 0));
+  });
+
+  it('uses one speaker for every clip', () => {
+    const speakers = new Set(Object.values(manifest.clips as Record<string, { speaker: string }>).map((c) => c.speaker));
+    expect(speakers.size).toBe(1);
+  });
+
+  it('never gives two tones of one syllable the same file', () => {
+    const seen = new Map<string, string>();
+    for (const id of Object.keys(AUDIO_CLIPS)) {
+      const hash = createHash('md5').update(readFileSync(join(ROOT, 'public', 'audio', `${toAscii(id)}.mp3`))).digest('hex');
+      const key = `${TONE_CELL[id].syllable.id}|${hash}`;
+      expect(seen.get(key), id).toBeUndefined();
+      seen.set(key, id);
     }
   });
 });

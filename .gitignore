@@ -1,7 +1,10 @@
 node_modules/
 dist/
 dev-dist/
+# Downloaded sources and the raw native-audio recordings (.cache/sources/audio-cmn/syllabs/): never committed.
 .cache/
+# The raw recordings if they are dropped in the project root instead; move them to .cache/sources/audio-cmn/.
+/syllabs/
 *.local
 .DS_Store
 .history/

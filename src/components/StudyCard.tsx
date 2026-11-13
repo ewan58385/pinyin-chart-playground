@@ -1,5 +1,5 @@
 /**
- * A syllable as a study item, for Learn and Practice: one syllable per card,
+ * A syllable as a study item, for the Learn stage pages: one syllable per card,
  * each tone on its own row with a Listen button, the example character and
  * gloss, and a new / shaky / solid control. Unlike the chart's reference card
  * (SyllableCard) it is something to work through, not a position in a grid.
@@ -9,7 +9,7 @@ import type { Syllable } from '../data';
 import { FINAL_BY_ID } from '../data/finals';
 import { INITIAL_BY_ID } from '../data/initials';
 import type { LearnStatus } from '../lib/db';
-import { TONE_NAMES, type Tone } from '../lib/pinyin';
+import { TONE_NAMES } from '../lib/pinyin';
 import { nativeItem, nowPlaying, play, stopPlayback } from '../lib/audio';
 import { setStatus, settings, showTone } from '../lib/store';
 import { cardTones } from './cardData';
@@ -24,14 +24,11 @@ const STATUSES: { value: LearnStatus; label: string }[] = [
 export function StudyCard({
   s,
   only,
-  current,
   action,
 }: {
   s: Syllable;
   /** Tones that belong to the current set; the others are shown dimmed. */
   only?: number[];
-  /** The tone being worked on, marked on its row. */
-  current?: Tone;
   /** The card's primary action, in the card's header. */
   action: ComponentChildren;
 }) {
@@ -58,7 +55,7 @@ export function StudyCard({
           const playing = playingKey === key;
           const groupId = `st-${cell.numeric}`;
           return (
-            <li key={cell.numeric} class={`study-tone s-${t.status}${t.inScope ? '' : ' aside'}${current === t.tone ? ' current' : ''}`}>
+            <li key={cell.numeric} class={`study-tone s-${t.status}${t.inScope ? '' : ' aside'}`}>
               <button
                 type="button"
                 class="icon-btn listen"

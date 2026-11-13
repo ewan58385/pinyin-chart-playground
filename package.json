@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "data:sources": "tsx scripts/fetch-sources.ts",
     "data:build": "tsx scripts/build-data.ts",
-    "data:audio": "tsx scripts/fetch-audio.ts",
+    "data:audio": "tsx scripts/build-audio.ts",
     "data:fonts": "python3 scripts/build-fonts.py",
     "data:icons": "python3 scripts/build-icons.py",
     "data:all": "npm run data:sources && npm run data:build && npm run data:audio && npm run data:fonts"

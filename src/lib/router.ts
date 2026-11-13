@@ -4,18 +4,25 @@
  * grammar lives in routes.ts.
  */
 import { signal, computed } from '@preact/signals';
-import { CHART, hashFor, hasPanel, parseHash, type Page, type Route } from './routes';
+import { CHART, hashFor, hasPanel, isRedirect, parseHash, type Page, type Route } from './routes';
 import type { Tone } from './pinyin';
 import type { BlockKind } from '../data/blocks';
 
 export type { Page, Route } from './routes';
 
-export const route = signal<Route>(parseHash(location.hash));
+/** The route for the current address. An old link that redirects also has its address rewritten, without a new history entry. */
+function current(): Route {
+  const r = parseHash(location.hash);
+  if (isRedirect(location.hash)) history.replaceState(null, '', hashFor(r));
+  return r;
+}
+
+export const route = signal<Route>(current());
 /** The open syllable only, so the chart does not redraw when just the tone changes. */
 export const openId = computed(() => route.value.syllable);
 
 window.addEventListener('hashchange', () => {
-  route.value = parseHash(location.hash);
+  route.value = current();
 });
 
 export function goPage(page: Page) {
@@ -40,13 +47,6 @@ export function openSyllable(syllable: string, tone: Tone | null = null) {
   } else {
     location.hash = hashFor(next);
   }
-}
-
-/** Move a guided practice session to another step without adding a history entry. */
-export function setPracticeStep(syllable: string, tone: Tone) {
-  const next: Route = { ...route.value, syllable, tone };
-  history.replaceState(null, '', hashFor(next));
-  route.value = next;
 }
 
 export function selectTone(tone: Tone) {

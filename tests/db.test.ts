@@ -89,4 +89,33 @@ describe('IndexedDB schema upgrade', () => {
     expect(await mergeLegacyNotes(rows)).toBe(0);
     expect((await db.getAll('legacyNotes')).length).toBe(3);
   });
+  it('restores a backup made from this database: everything returns, a second restore adds nothing, retired rows are left alone', async () => {
+    const db = await import('../src/lib/db');
+    const { buildExport, applyImport } = await import('../src/lib/transfer');
+    await db.put('overrides', { cell: 'ma2', character: '麻', updatedAt: 20 });
+    await db.put('status', { cell: 'ba1', status: 'shaky', updatedAt: 22 });
+    // A row in the store kept from the removed quiz section.
+    const retired = db.RETIRED_STORES[0];
+    await db.put(retired, { cell: 'ma1', right: 2, wrong: 0, lastWrongAt: 0, updatedAt: 21 });
+    const snapshot = async () => ({
+      status: await db.getAll('status'),
+      notes: (await db.getAll<{ note: string }>('toneNotes')).filter((n) => n.note),
+      overrides: await db.getAll('overrides'),
+      recordings: await db.getAll('recordings'),
+      settings: await db.getAll('settings'),
+    });
+    const before = await snapshot();
+    const { bytes, counts } = await buildExport();
+    expect(counts).toMatchObject({ recordings: 1, characters: 1 });
+
+    // "Replace everything": cleared, then loaded from the backup.
+    await applyImport(bytes, true);
+    expect(await snapshot()).toEqual(before);
+    expect((await db.getRecordingBlob({ id: 't1', mimeType: 'audio/webm' }))?.size).toBe(3);
+    expect(await db.getAll(retired)).toHaveLength(1);
+
+    // Restoring the same backup again changes nothing.
+    expect(await applyImport(bytes, false)).toEqual({ status: 0, notes: 0, overrides: 0, settings: 0, recordings: 0, skippedRecordings: 1 });
+    expect(await snapshot()).toEqual(before);
+  });
 });

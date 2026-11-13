@@ -1,15 +1,20 @@
 /**
- * The tone cells a practice session or a status summary covers, for a scope:
- * a learning stage, a final group, an initial group, a category, one
- * syllable, or everything marked shaky. Pure, so it can be tested.
+ * The tone cells a status summary or progress bar covers, for a scope: a
+ * learning stage, a final group, an initial group or a category. Pure, so it
+ * can be tested.
  */
-import { SYLLABLES, SYLLABLE_BY_ID, syllableAt, type Syllable, type ToneCell } from '../data';
+import { syllableAt, type Syllable, type ToneCell } from '../data';
 import { blockFor } from '../data/blocks';
 import { CATEGORY_BY_ID, categorySyllables } from '../data/categories';
 import { FINALS } from '../data/finals';
 import { INITIALS } from '../data/initials';
 import { STAGE_BY_ID, stageCells } from '../data/learn';
-import type { Scope } from './routes';
+
+export type ScopeKind = 'stage' | 'finals' | 'initials' | 'category';
+export interface Scope {
+  kind: ScopeKind;
+  id: string;
+}
 
 export interface ScopeCell {
   syllable: Syllable;
@@ -27,7 +32,7 @@ export function blockSyllables(kind: 'finals' | 'initials', id: string): Syllabl
   return pairs.filter((s): s is Syllable => !!s);
 }
 
-export function scopeCells(scope: Scope, statuses: Record<string, string | undefined> = {}, showUnverified = false): ScopeCell[] {
+export function scopeCells(scope: Scope, showUnverified = false): ScopeCell[] {
   switch (scope.kind) {
     case 'stage':
       return STAGE_BY_ID[scope.id] ? stageCells(STAGE_BY_ID[scope.id], showUnverified) : [];
@@ -36,15 +41,5 @@ export function scopeCells(scope: Scope, statuses: Record<string, string | undef
       return blockSyllables(scope.kind, scope.id).flatMap((s) => visibleCells(s, showUnverified));
     case 'category':
       return CATEGORY_BY_ID[scope.id] ? categorySyllables(CATEGORY_BY_ID[scope.id], showUnverified).flatMap((s) => visibleCells(s, showUnverified)) : [];
-    case 'syllable':
-      return SYLLABLE_BY_ID[scope.id] ? visibleCells(SYLLABLE_BY_ID[scope.id], true) : [];
-    case 'shaky':
-      return SYLLABLES.flatMap((s) => visibleCells(s, true)).filter((c) => statuses[c.cell.numeric] === 'shaky');
   }
-}
-
-/** Where a session starts: the first cell not yet solid, else the first cell. */
-export function startIndex(cells: ScopeCell[], statuses: Record<string, string | undefined>): number {
-  const i = cells.findIndex((c) => statuses[c.cell.numeric] !== 'solid');
-  return i < 0 ? 0 : i;
 }

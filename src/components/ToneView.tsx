@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { hasNativeAudio, AUDIO_UNVERIFIED, type ExampleWord, type Syllable, type ToneCell } from '../data';
+import { hasNativeAudio, AUDIO_CLIPS_BY_TONE, type ExampleWord, type Syllable, type ToneCell } from '../data';
 import { TONE_NAMES } from '../lib/pinyin';
 import {
   addRecording,
@@ -348,11 +348,8 @@ const STATUS_OPTIONS: { value: LearnStatus; label: string }[] = [
   { value: 'solid', label: 'Solid' },
 ];
 
-export type ToneViewPart = 'example' | 'status' | 'compare' | 'note';
-const ALL_PARTS: ToneViewPart[] = ['example', 'status', 'compare', 'note'];
-
-/** The tone panel. A practice session shows only the parts it does not already show on its study card. */
-export function ToneView({ syl, cell, parts = ALL_PARTS }: { syl: Syllable; cell: ToneCell; parts?: ToneViewPart[] }) {
+/** The tone panel: example, status, native and own recordings, and the note. */
+export function ToneView({ syl, cell }: { syl: Syllable; cell: ToneCell }) {
   const id = cell.numeric;
   const ex = resolveExample(id, overrides.value);
   const s = settings.value;
@@ -448,7 +445,6 @@ export function ToneView({ syl, cell, parts = ALL_PARTS }: { syl: Syllable; cell
 
   return (
     <div role="tabpanel" aria-label={`${cell.display}, ${TONE_NAMES[cell.tone]}`}>
-      {parts.includes('example') && (
       <section class="d-section">
         <div class="d-sec-head">
           <h3>Example</h3>
@@ -503,18 +499,13 @@ export function ToneView({ syl, cell, parts = ALL_PARTS }: { syl: Syllable; cell
                     character unverified
                   </span>
                 )}
-                {AUDIO_UNVERIFIED[id] !== undefined && (
-                  <span class="tag flag" title={AUDIO_UNVERIFIED[id]}>
-                    audio unverified
-                  </span>
-                )}
               </div>
             </div>
             {!hasAudio && (
               <p class="hint" style="margin-top:10px">
-                {cell.tone === 5
-                  ? 'No native recording: the audio source covers tones 1 to 4 only. A neutral tone is short and light, and its pitch depends on the tone before it, so listen for it inside the example words.'
-                  : 'No native recording of this syllable and tone in the audio source.'}
+                {cell.tone === 5 && AUDIO_CLIPS_BY_TONE[5] === 0
+                  ? 'No native recording: the audio set has no neutral-tone recordings. A neutral tone is short and light, and its pitch depends on the tone before it, so listen for it inside the example words.'
+                  : 'No native recording of this syllable and tone in the audio set.'}
               </p>
             )}
             {playError.value && (
@@ -565,9 +556,7 @@ export function ToneView({ syl, cell, parts = ALL_PARTS }: { syl: Syllable; cell
           </>
         )}
       </section>
-      )}
 
-      {parts.includes('status') && (
       <section class="d-section">
         <div class="d-sec-head">
           <h3 id={`st-${id}`}>How well I know it</h3>
@@ -580,9 +569,7 @@ export function ToneView({ syl, cell, parts = ALL_PARTS }: { syl: Syllable; cell
           </div>
         </div>
       </section>
-      )}
 
-      {parts.includes('compare') && (
       <section class="d-section">
         <div class="d-sec-head">
           <h3>Compare</h3>
@@ -705,15 +692,7 @@ export function ToneView({ syl, cell, parts = ALL_PARTS }: { syl: Syllable; cell
           </ul>
         )}
       </section>
-      )}
 
-      {s.showPractice && s.practiceLink && (
-        <p class="hint small practice-link">
-          <a href={`#/practice/syllable/${encodeURIComponent(syl.id)}`}>Practise this sound</a>
-        </p>
-      )}
-
-      {parts.includes('note') && (
       <section class="d-section">
         <h3>Note on this tone</h3>
         <NoteField
@@ -726,7 +705,6 @@ export function ToneView({ syl, cell, parts = ALL_PARTS }: { syl: Syllable; cell
           onSave={(text) => saveToneNote(id, text)}
         />
       </section>
-      )}
     </div>
   );
 }

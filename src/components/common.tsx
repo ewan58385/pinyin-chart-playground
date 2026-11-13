@@ -1,9 +1,9 @@
-/** Small pieces shared by the group, overview, browse, learn and practice pages. */
+/** Small pieces shared by the group, overview, browse and learn pages. */
 import type { ComponentChildren } from 'preact';
-import { crumbsFor, practiceHash, type Scope } from '../lib/routes';
+import { crumbsFor } from '../lib/routes';
 import { route } from '../lib/router';
-import { recordingsByCell, settings, statuses } from '../lib/store';
-import { ChevronRight, Target } from './icons';
+import { recordingsByCell, statuses } from '../lib/store';
+import { ChevronRight } from './icons';
 
 /** "1 syllable", "3 syllables". */
 export const count = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
@@ -61,28 +61,6 @@ export function StatusSummary({ cells, syllables }: { cells: { cell: { numeric: 
         <span>with a recording</span>
       </div>
     </div>
-  );
-}
-
-/** A visible way into a guided practice session for a scope. Hidden when Practice is turned off in Settings. */
-export function PracticeButton({ scope, children }: { scope: Scope; children: ComponentChildren }) {
-  if (!settings.value.showPractice) return null;
-  return (
-    <a class="btn primary practice-btn" href={practiceHash(scope)}>
-      <Target size={15} aria-hidden="true" />
-      {children}
-    </a>
-  );
-}
-
-/** The way from Learn into Practice: a plain button-styled link, secondary to the page's own reading. Hidden when Practice is off. */
-export function PracticeLink({ scope, children }: { scope: Scope; children: ComponentChildren }) {
-  if (!settings.value.showPractice) return null;
-  return (
-    <a class="btn practice-link-btn" href={practiceHash(scope)}>
-      <Target size={15} aria-hidden="true" />
-      {children}
-    </a>
   );
 }
 

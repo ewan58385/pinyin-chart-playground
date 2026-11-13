@@ -5,16 +5,21 @@ import { INITIAL_BY_ID } from '../data/initials';
 import { syllableAt, type Syllable } from '../data';
 import { FINALS } from '../data/finals';
 import { INITIALS } from '../data/initials';
-import { settings, syllableVisible } from '../lib/store';
+import { setSetting, settings, syllableVisible } from '../lib/store';
 import { scopeCells } from '../lib/scope';
-import { Crumbs, PracticeButton, StatusSummary, count } from './common';
+import { Crumbs, StatusSummary, count } from './common';
 import { route } from '../lib/router';
 import { CardLegend, SyllableCard } from './SyllableCard';
-import { ChartIcon } from './icons';
+import { ChartIcon, PanelLeftClose, PanelLeftOpen } from './icons';
 
-/** Side (desktop) or strip (mobile) navigation between the overview and group pages. */
+/**
+ * Side (desktop) or strip (mobile) navigation between the overview and group
+ * pages. On wide screens it can be folded to a slim rail (remembered as a
+ * setting); on phones it is always the strip, and the fold control is hidden.
+ */
 export function BlockNav({ current }: { current?: Block }) {
   const page = route.value.page;
+  const collapsed = settings.value.blockNavCollapsed;
   const group = (kind: BlockKind, heading: string) => (
     <div class="bn-group">
       <h2>
@@ -33,14 +38,32 @@ export function BlockNav({ current }: { current?: Block }) {
       </ul>
     </div>
   );
+  const toggle = (
+    <button
+      type="button"
+      class="bn-toggle"
+      aria-expanded={!collapsed}
+      aria-controls="bn-groups"
+      aria-label={collapsed ? 'Show the finals and initials panel' : 'Hide the finals and initials panel'}
+      title={collapsed ? 'Show the panel' : 'Hide the panel'}
+      onClick={() => setSetting('blockNavCollapsed', !collapsed)}
+    >
+      {collapsed ? <PanelLeftOpen size={18} aria-hidden="true" /> : <PanelLeftClose size={18} aria-hidden="true" />}
+      <span class="bn-toggle-text">{collapsed ? 'Show' : 'Hide panel'}</span>
+    </button>
+  );
   return (
-    <nav class="block-nav" aria-label="Finals and initials">
-      <a class="bn-chart" href="#/" aria-label="Whole chart: back to the main chart">
+    <nav class={`block-nav${collapsed ? ' collapsed' : ''}`} aria-label="Finals and initials">
+      <a class="bn-chart" href="#/" aria-label="Whole chart: back to the main chart" title={collapsed ? 'Whole chart' : undefined}>
         <ChartIcon size={18} aria-hidden="true" />
         <span>Whole chart</span>
       </a>
-      {group('finals', 'Finals')}
-      {group('initials', 'Initials')}
+      <div class="bn-groups" id="bn-groups">
+        {group('finals', 'Finals')}
+        {group('initials', 'Initials')}
+      </div>
+      {/* One element in both states, so keyboard focus stays on it. Folded, the groups are hidden and it sits under the chart link. */}
+      <div class="bn-foot">{toggle}</div>
     </nav>
   );
 }
@@ -81,7 +104,7 @@ export function BlockPage() {
   const prev = list[index - 1];
   const next = list[index + 1];
   const show = settings.value.showUnverified;
-  const cells = scopeCells({ kind, id: block.id }, {}, show);
+  const cells = scopeCells({ kind, id: block.id }, show);
   const syllableCount = new Set(cells.map((c) => c.syllable.id)).size;
 
   // Left and right arrows move between blocks of the same kind, unless typing or inside the panel.
@@ -129,9 +152,6 @@ export function BlockPage() {
             </div>
           </header>
           <StatusSummary cells={cells} syllables={syllableCount} />
-          <p class="page-actions">
-            <PracticeButton scope={{ kind, id: block.id }}>Practise this {kind === 'finals' ? 'group' : 'initial group'}</PracticeButton>
-          </p>
           <CardLegend />
           {block.members.map((m) => (
             <Member key={m} block={block} member={m} />

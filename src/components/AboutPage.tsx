@@ -1,4 +1,5 @@
-import { AUDIO_NOTES, AUDIO_SOURCES, AUDIO_TOTAL_BYTES, AUDIO_UNVERIFIED, CELLS, DATA_META, SYLLABLES, hasNativeAudio } from '../data';
+import { AUDIO_CLIPS_BY_TONE, AUDIO_SOURCES, AUDIO_TOTAL_BYTES, CELLS, DATA_META, SYLLABLES, hasNativeAudio } from '../data';
+import { TONES } from '../lib/pinyin';
 import { totalClipCount } from '../lib/audio';
 
 const Ext = ({ href, children }: { href: string; children: preact.ComponentChildren }) => (
@@ -10,7 +11,11 @@ const Ext = ({ href, children }: { href: string; children: preact.ComponentChild
 export function AboutPage() {
   const c = DATA_META.counts;
   const visibleCells = c.toneCellsStandard + c.toneCellsNeutralInWord;
-  const noAudio = SYLLABLES.flatMap((s) => s.tones).filter((t) => t.status !== 'single-source' && !hasNativeAudio(t.numeric)).length;
+  const silent = SYLLABLES.flatMap((s) => s.tones).filter((t) => t.status !== 'single-source' && !hasNativeAudio(t.numeric));
+  const noAudio = silent.length;
+  // Worded from the actual coverage, tone by tone.
+  const silentByTone = TONES.map((tone) => ({ tone, n: silent.filter((t) => t.tone === tone).length })).filter((x) => x.n > 0);
+  const toneWord = (tone: number) => (tone === 5 ? 'neutral tone' : `tone ${tone}`);
   const unverifiedChars = Object.values(CELLS).filter((x) => !x.verified).length;
   return (
     <article class="page">
@@ -60,13 +65,13 @@ export function AboutPage() {
             labels in the data.
           </li>
           <li>
-            <a href="#/learn">Learn</a> (the path): nine stages from the sounds the data labels simplest to the hardest, what each covers and why, and its syllables to
-            listen to and mark. The order follows those labels (simple, compound and nasal finals; easy, tougher and problem initials); progress is read from
+            <a href="#/learn">Learn</a>: nine stages from the sounds the data labels simplest to the hardest, what each covers and why, a picture of where its
+            syllables sit on the chart, and its syllables to listen to and mark. The order follows those labels (simple, compound and nasal finals; easy, tougher and problem initials); progress is read from
             the new / shaky / solid marks you set, and nothing is locked.
           </li>
           <li>
-            <a href="#/practice">Practice</a> (drills): a guided run through any stage, group, category or your shaky syllables, with recording and comparison, plus
-            a listening quiz and a minimal-pair trainer.
+            <a href="#/data">My data</a>: backup and restore. One zip holds everything you have added in this browser; restoring it on another device
+            merges it in.
           </li>
         </ul>
       </section>
@@ -87,14 +92,19 @@ export function AboutPage() {
             <b>{c.toneCellsNeutralInWord} neutral-tone cells</b> rest on CC-CEDICT word entries alone, and <b>{unverifiedChars} example characters</b> have a
             reading that only CC-CEDICT gives. Both are shown, and flagged where they appear.
           </li>
-          <li>
-            <b>{noAudio} cells have no native audio</b>, nearly all of them neutral tones. {AUDIO_NOTES[0]}
-          </li>
-          {Object.entries(AUDIO_UNVERIFIED).map(([id, note]) => (
-            <li key={id}>
-              Audio for <span class="py">{id}</span>: {note}
+          {noAudio > 0 && (
+            <li>
+              <b>
+                {noAudio} {noAudio === 1 ? 'cell has' : 'cells have'} no native audio
+              </b>
+              {silentByTone.length === 1
+                ? `, all of them ${silentByTone[0].tone === 5 ? 'neutral tones' : toneWord(silentByTone[0].tone)}.`
+                : ` (${silentByTone.map((x) => `${x.n} ${toneWord(x.tone)}`).join(', ')}).`}
+              {AUDIO_CLIPS_BY_TONE[5] === 0 &&
+                ' The audio set has no usable neutral-tone recordings: its few neutral-tone files did not pass the checks every clip goes through, so they are not used.'}{' '}
+              The cells without a clip say so where they appear.
             </li>
-          ))}
+          )}
           <li>Glosses are shortened automatically from CC-CEDICT and can be clumsy. Any character, gloss or example word can be edited.</li>
           <li>
             Pinyin for example words is in dictionary form: tone changes in running speech (不 before a fourth tone, 一, two third tones together) are not
@@ -129,12 +139,13 @@ export function AboutPage() {
         <dl class="sources">
           {Object.entries(AUDIO_SOURCES).map(([key, s]) => (
             <div key={key}>
-              <dt>
-                Native audio: <Ext href={s.url}>{s.name}</Ext>
-              </dt>
+              <dt>Native audio: {s.url !== 'UNKNOWN' ? <Ext href={s.url}>{s.name}</Ext> : s.name}</dt>
               <dd>
-                {s.author}. Licence: <Ext href={s.licenceUrl}>{s.licence}</Ext>. {s.note} Clips were trimmed, levelled and re-encoded for this app. Every
-                clip is listed in audio-manifest.json in the source repository.
+                Spoken by {s.speaker}. Authors: {s.author}. {s.copyright}. Licence:{' '}
+                {s.licenceUrl !== 'UNKNOWN' ? <Ext href={s.licenceUrl}>{s.licence}</Ext> : s.licence}.
+                {s.url === 'UNKNOWN' && ' Web address: UNKNOWN (the files and their README do not give one).'} The clips were trimmed, levelled and
+                re-encoded for this app; those adapted clips are shared under the same licence. Every clip, with its original file name, is listed in
+                audio-manifest.json in the source repository.
               </dd>
             </div>
           ))}

@@ -1,16 +1,17 @@
 /**
  * Learn is the path: stages from the sounds the data labels simplest to the
- * hardest, what each covers and why, its syllables to read and listen to,
- * and progress read from the user's own statuses. It runs no drills; every
- * stage links to Practice for that. Nothing is locked.
+ * hardest, what each covers and why, a picture of where its syllables sit on
+ * the chart, its syllables to listen to and mark, and progress read from the
+ * user's own statuses. Nothing is locked.
  */
 import { STAGES, STAGE_BY_ID, nextStage, progressOf, shakiest, stageCells, stageSyllables, type Stage } from '../data/learn';
 import { INITIALS, INITIAL_BY_ID } from '../data/initials';
+import { FINALS } from '../data/finals';
 import { openSyllable, route } from '../lib/router';
-import { practiceHistory, settings, showTone, statuses } from '../lib/store';
-import { decayedErrors } from '../practice/weights';
-import { Crumbs, MoreLink, PracticeLink, StatusSummary, count } from './common';
+import { settings, showTone, statuses } from '../lib/store';
+import { Crumbs, MoreLink, StatusSummary, count } from './common';
 import { StudyCard } from './StudyCard';
+import { StageMap } from './StageMap';
 import { ArrowRight } from './icons';
 
 function ProgressBar({ stage }: { stage: Stage }) {
@@ -32,15 +33,13 @@ function ProgressBar({ stage }: { stage: Stage }) {
 function LearnIndex() {
   const st = statuses.value;
   const next = nextStage(st, settings.value.showUnverified);
-  const ph = practiceHistory.value;
-  const revisit = shakiest(st, (cell) => decayedErrors(ph[cell]));
+  const revisit = shakiest(st);
   return (
     <div class="block-wrap">
       <article class="block overview">
         <Crumbs />
         <header class="block-head">
           <h1>Learn</h1>
-          <p class="purpose">The path: what to study next, and what each stage is. The drills are in Practice.</p>
           <p class="lede">
             Stages run from the sounds the chart data labels simplest to the ones it labels hardest. Progress comes from the new / shaky / solid marks you
             set on each tone; nothing is locked.
@@ -60,13 +59,12 @@ function LearnIndex() {
               <ProgressBar stage={next} />
               <p class="page-actions">
                 <a class="btn primary" href={`#/learn/${next.id}`}>
-                  Read the stage
+                  Open the stage
                 </a>
-                <PracticeLink scope={{ kind: 'stage', id: next.id }}>Practise this stage</PracticeLink>
               </p>
             </>
           ) : (
-            <p>Every stage is mostly solid. The review stage and “my shaky syllables” are still there to revisit.</p>
+            <p>Every stage is mostly solid. The review stage and any tones still marked shaky are there to revisit.</p>
           )}
           {revisit.length > 0 && (
             <div class="revisit">
@@ -82,9 +80,6 @@ function LearnIndex() {
                   </li>
                 ))}
               </ul>
-              <p class="page-actions">
-                <PracticeLink scope={{ kind: 'shaky', id: '' }}>Practise my shaky syllables</PracticeLink>
-              </p>
             </div>
           )}
         </section>
@@ -115,6 +110,9 @@ function LearnIndex() {
   );
 }
 
+/** "a, o and e": a short list in words. */
+const listed = (items: string[]) => (items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`);
+
 function StagePage({ stage }: { stage: Stage }) {
   const show = settings.value.showUnverified;
   const cells = stageCells(stage, show);
@@ -123,6 +121,9 @@ function StagePage({ stage }: { stage: Stage }) {
   const prev = STAGES[index - 1];
   const next = STAGES[index + 1];
   const groups = INITIALS.map((i) => ({ initial: i, syls: syls.filter((s) => s.initial === i.id) })).filter((g) => g.syls.length);
+  // Which initials and finals the stage uses, read from its syllables, in chart order.
+  const initials = INITIALS.filter((i) => syls.some((s) => s.initial === i.id));
+  const finals = FINALS.filter((f) => syls.some((s) => s.final === f.id));
   return (
     <div class="block-wrap">
       <article class="block">
@@ -133,22 +134,40 @@ function StagePage({ stage }: { stage: Stage }) {
             {stage.review ? ' · review' : ''}
           </p>
           <h1>{stage.title}</h1>
-          <p class="lede">{stage.covers}</p>
-          <p class="stage-why">
-            <b>Why here.</b> {stage.why}
-          </p>
+          <ul class="stage-facts">
+            <li>
+              <b>Covers:</b> {stage.covers}
+            </li>
+            <li>
+              <b>Initials:</b>{' '}
+              {initials.length === INITIALS.length ? (
+                'all of them, on every row of the chart'
+              ) : (
+                <span lang="zh-Latn">{listed(initials.map((i) => (i.id ? i.display : '∅ (no initial)')))}</span>
+              )}
+              .
+            </li>
+            <li>
+              <b>Finals:</b> {finals.length === FINALS.length ? 'all 36' : <span lang="zh-Latn">{listed(finals.map((f) => f.surface))}</span>}.
+            </li>
+            <li>
+              <b>Tones:</b> {stage.tones === 'neutral' ? 'the neutral tone only' : 'the four full tones (first to fourth)'}; {count(syls.length, 'syllable')},{' '}
+              {count(cells.length, 'tone')}.
+            </li>
+            <li>
+              <b>Why here:</b> {stage.why}
+            </li>
+          </ul>
           <div class="block-nextprev">
             {prev ? <a href={`#/learn/${prev.id}`} rel="prev">← {prev.title}</a> : <span />}
             {next ? <a href={`#/learn/${next.id}`} rel="next">{next.title} →</a> : <span />}
           </div>
         </header>
+        <StageMap stage={stage} index={index} />
         <StatusSummary cells={cells} syllables={syls.length} />
-        <p class="page-actions">
-          <PracticeLink scope={{ kind: 'stage', id: stage.id }}>Practise this stage</PracticeLink>
-        </p>
         <p class="hint small study-intro">
-          Listen to each tone and mark how well you know it. Open a syllable for its example words, recordings and notes; to drill the stage, use
-          Practise this stage.{stage.tones === 'neutral' ? ' Only the neutral tone of each syllable belongs to this stage; the others are dimmed.' : ''}
+          Listen to each tone and mark how well you know it. Open a syllable for its example words, your recordings and notes.
+          {stage.tones === 'neutral' ? ' Only the neutral tone of each syllable belongs to this stage; the others are dimmed.' : ''}
         </p>
         {groups.map((g) => (
           <section class="member" key={g.initial.id}>
